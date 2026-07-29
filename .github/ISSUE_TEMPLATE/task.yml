@@ -1,0 +1,45 @@
+name: Task
+description: Tạo công việc hoặc chức năng mới
+title: "[TASK] "
+labels:
+  - task
+
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Mục tiêu
+      description: Công việc này nhằm giải quyết vấn đề gì?
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Yêu cầu
+      placeholder: |
+        - Yêu cầu 1
+        - Yêu cầu 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Tiêu chí hoàn thành
+      placeholder: |
+        - [ ] Điều kiện 1
+        - [ ] Điều kiện 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Độ ưu tiên
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
