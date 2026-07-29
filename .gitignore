@@ -21,6 +21,7 @@
 
 # Private database and student data
 *.sql
+!/database/schema/*.sql
 *.csv
 /database/private-imports/
 /database/private-data/
