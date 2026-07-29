@@ -67,15 +67,15 @@ Hệ thống là một website phục vụ riêng cho khoa CNTT. Hệ thống qu
 
 #### FR-001 — Kiểm tra mã sinh viên
 
-Hệ thống phải cho phép Sinh viên nhập mã sinh viên và kiểm tra mã đó trong danh sách sinh viên đang hoạt động của hệ thống.
+Hệ thống phải cho phép Sinh viên nhập mã sinh viên và kiểm tra mã đó có tồn tại trong danh sách sinh viên của hệ thống.
 
 #### FR-002 — Hiển thị thông tin sinh viên
 
-Khi mã sinh viên tồn tại, hệ thống phải hiển thị đúng các thông tin: mã sinh viên, họ và tên, lớp và khoa.
+Khi mã sinh viên tồn tại, hệ thống phải hiển thị đúng mã sinh viên và họ tên.
 
 #### FR-003 — Thông báo mã sinh viên không tồn tại
 
-Khi mã sinh viên không tồn tại hoặc Sinh viên đang ở trạng thái ngừng hoạt động, hệ thống phải hiển thị thông báo lỗi, không cho phép gửi yêu cầu và không cho phép tra cứu hồ sơ.
+Khi mã sinh viên không tồn tại, hệ thống phải hiển thị thông báo lỗi, không cho phép gửi yêu cầu và không cho phép tra cứu hồ sơ.
 
 #### FR-004 — Hiển thị loại hồ sơ được tiếp nhận
 
@@ -87,7 +87,7 @@ Hệ thống phải cho phép Sinh viên đã được xác nhận mã sinh viê
 
 #### FR-006 — Khởi tạo yêu cầu hồ sơ
 
-Khi yêu cầu hợp lệ được gửi, hệ thống phải lưu mã sinh viên, loại hồ sơ, thời gian gửi, trạng thái `Chờ tiếp nhận` và một mã hồ sơ duy nhất do hệ thống tự sinh theo BR-010.
+Khi yêu cầu hợp lệ được gửi, hệ thống phải lưu mã sinh viên, loại hồ sơ, thời gian gửi, trạng thái `Chờ tiếp nhận` và một mã hồ sơ duy nhất do hệ thống tự sinh theo BR-010. Việc khởi tạo này không tạo bản ghi lịch sử trạng thái.
 
 #### FR-007 — Cho phép gửi nhiều hồ sơ cùng loại
 
@@ -95,11 +95,11 @@ Hệ thống phải tạo yêu cầu mới khi Sinh viên gửi hồ sơ cùng l
 
 #### FR-008 — Tra cứu danh sách hồ sơ
 
-Hệ thống phải cho phép Sinh viên đang hoạt động nhập mã sinh viên để xem danh sách hồ sơ gắn với mã sinh viên đó mà không cần đăng nhập.
+Hệ thống phải cho phép Sinh viên có mã tồn tại trong danh sách sinh viên nhập mã sinh viên để xem danh sách hồ sơ gắn với mã đó mà không cần đăng nhập.
 
 #### FR-009 — Hiển thị thông tin tra cứu hồ sơ
 
-Đối với mỗi hồ sơ trong kết quả tra cứu, hệ thống phải hiển thị mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, ghi chú hiện tại của Thư ký và ngày cập nhật gần nhất. Sinh viên không có chức năng xem lịch sử xử lý.
+Đối với mỗi hồ sơ trong kết quả tra cứu, hệ thống phải hiển thị mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, lý do `Không hợp lệ` nếu có, ghi chú hiện tại của Thư ký nếu có và ngày cập nhật gần nhất. Sinh viên không có chức năng xem lịch sử xử lý.
 
 ### Chức năng dùng chung cho người dùng nội bộ
 
@@ -119,7 +119,7 @@ Staff phải xem được danh sách hồ sơ của khoa CNTT.
 
 #### FR-013 — Tìm kiếm và lọc hồ sơ
 
-Staff phải có thể tìm kiếm hoặc lọc hồ sơ theo mã sinh viên, họ tên sinh viên, loại hồ sơ, trạng thái, ngày gửi, khoa và lớp.
+Staff phải có thể tìm kiếm hoặc lọc hồ sơ theo mã sinh viên, họ tên sinh viên, loại hồ sơ, trạng thái và ngày gửi.
 
 #### FR-014 — Xem chi tiết và lịch sử hồ sơ
 
@@ -133,7 +133,7 @@ Staff phải có thể chuyển hồ sơ từ `Chờ tiếp nhận` sang `Đã t
 
 #### FR-016 — Xem và tra cứu hồ sơ
 
-Thư ký phải xem được danh sách, chi tiết và lịch sử hồ sơ của khoa CNTT; đồng thời phải có thể tìm kiếm hoặc lọc theo mã sinh viên, họ tên sinh viên, loại hồ sơ, trạng thái, ngày gửi, khoa và lớp.
+Thư ký phải xem được danh sách, chi tiết và lịch sử hồ sơ của khoa CNTT; đồng thời phải có thể tìm kiếm hoặc lọc theo mã sinh viên, họ tên sinh viên, loại hồ sơ, trạng thái và ngày gửi.
 
 #### FR-017 — Thư ký xác nhận tiếp nhận hồ sơ
 
@@ -141,11 +141,11 @@ Thư ký phải có thể chuyển hồ sơ từ `Chờ tiếp nhận` sang `Đ�
 
 #### FR-018 — Cập nhật trạng thái xử lý
 
-Thư ký phải có thể cập nhật trạng thái hồ sơ theo các bước chuyển hợp lệ được định nghĩa tại BR-005. Khi phát hiện hồ sơ là bản gửi trùng, Thư ký phải xử lý theo BR-003.
+Thư ký phải có thể cập nhật trạng thái hồ sơ theo các bước chuyển hợp lệ được định nghĩa tại BR-005. Khi Thư ký bắt đầu xử lý bằng bước `Đã tiếp nhận` → `Đang xử lý`, hệ thống gán Thư ký đó làm người đang được phân công phụ trách nếu hồ sơ chưa có người phụ trách; các transition sau không tự động ghi đè phân công. Staff không được thay đổi phân công này. Khi chuyển hồ sơ sang `Không hợp lệ`, Thư ký phải kiểm tra thủ công và nhập `invalid_reason` dưới dạng văn bản tự do, tối đa 200 ký tự, theo BR-009. Khi phát hiện hồ sơ trùng, Thư ký tự chọn hồ sơ cần xử lý theo BR-003.
 
 #### FR-019 — Nhập ghi chú xử lý
 
-Thư ký phải có thể nhập ghi chú khi cập nhật hồ sơ. Ghi chú không bắt buộc, ngoại trừ trường hợp chuyển hồ sơ trùng sang `Không hợp lệ`. Đối với hồ sơ trùng, Thư ký phải nhập ghi chú nêu lý do trùng trước khi cập nhật trạng thái. Nếu Thư ký nhập ghi chú, hệ thống phải hiển thị ghi chú hiện tại cho Sinh viên khi tra cứu hồ sơ.
+Thư ký phải có thể nhập ghi chú bổ sung tối đa 500 ký tự khi cập nhật hồ sơ. `student_documents.note` là ghi chú của trạng thái hiện tại; nếu lần chuyển mới không có ghi chú thì ghi chú hiện tại phải được đặt về `NULL`. Ghi chú không phụ thuộc vào nội dung của `invalid_reason`. `document_status_history.note` là snapshot bất biến của ghi chú tại từng lần chuyển. Nếu trạng thái hiện tại có ghi chú, hệ thống phải hiển thị ghi chú đó cho Sinh viên khi tra cứu hồ sơ.
 
 #### FR-020 — Cập nhật kết quả phê duyệt ngoài hệ thống
 
@@ -157,13 +157,13 @@ Thư ký phải có thể chuyển hồ sơ ở bất kỳ trạng thái chưa k
 
 #### FR-022 — Lưu lịch sử trạng thái
 
-Sau mỗi lần thay đổi trạng thái, hệ thống phải tự động lưu trạng thái cũ, trạng thái mới, người cập nhật, thời gian cập nhật và nội dung ghi chú.
+Sau mỗi lần thay đổi trạng thái, hệ thống phải tự động lưu trạng thái mới, người cập nhật, thời gian cập nhật, nội dung ghi chú nếu có và `invalid_reason` dạng văn bản tự do nếu trạng thái mới là `Không hợp lệ`. Bản ghi lịch sử đầu tiên được tạo khi Staff hoặc Thư ký chuyển hồ sơ từ `Chờ tiếp nhận` sang `Đã tiếp nhận`; Public Submission không tạo lịch sử.
 
 ### Chức năng dành cho Admin
 
 #### FR-023 — Quản lý tài khoản nội bộ
 
-Admin phải có thể thêm, xem, sửa, xóa, khóa và mở khóa tài khoản Staff/Thư ký. Tài khoản đã phát sinh lịch sử xử lý hồ sơ không được xóa mà chỉ được khóa.
+Admin phải có thể thêm, xem, sửa, khóa và mở khóa tài khoản Staff/Thư ký. Hệ thống không cung cấp chức năng xóa vật lý tài khoản; tài khoản không còn sử dụng phải được khóa để bảo toàn liên kết và lịch sử.
 
 #### FR-024 — Phân quyền tài khoản
 
@@ -171,15 +171,15 @@ Admin phải có thể gán vai trò Staff hoặc Thư ký cho tài khoản nộ
 
 #### FR-025 — Quản lý loại hồ sơ
 
-Admin phải có thể thêm, xem, sửa, kích hoạt và ngừng sử dụng loại hồ sơ. Loại hồ sơ đã được liên kết với hồ sơ sinh viên không được xóa.
+Admin phải có thể thêm, xem, sửa, kích hoạt và ngừng sử dụng loại hồ sơ. Hệ thống không cung cấp chức năng xóa vật lý loại hồ sơ; loại không còn sử dụng phải được ngừng kích hoạt.
 
 #### FR-026 — Quản lý danh sách sinh viên
 
-Admin phải có thể thêm, xem, sửa, kích hoạt và ngừng sử dụng sinh viên. Sinh viên đã được liên kết với hồ sơ không được xóa.
+Admin phải có thể thêm, xem, sửa và xóa Sinh viên. Sinh viên đã được liên kết với hồ sơ không được xóa.
 
-#### FR-027 — Xem thống kê tổng hợp
+#### FR-027 — Xem thống kê đầy đủ bảy trạng thái
 
-Admin phải xem được các số liệu: tổng số hồ sơ hiện có trạng thái `Đã tiếp nhận`, số hồ sơ `Chờ tiếp nhận`, số hồ sơ `Đang xử lý`, số hồ sơ `Cần bổ sung`, số hồ sơ `Đã xử lý xong` và số hồ sơ theo từng loại.
+Admin phải xem được số hồ sơ hiện có theo đủ bảy trạng thái: `Chờ tiếp nhận`, `Đã tiếp nhận`, `Đang xử lý`, `Cần bổ sung`, `Đã xử lý xong`, `Không hợp lệ`, `Đã hủy`; đồng thời xem được số hồ sơ theo từng loại.
 
 #### FR-028 — Xem thống kê theo thời gian
 
@@ -187,9 +187,9 @@ Admin phải xem được số hồ sơ theo ngày và tháng.
 
 ## Business Rules
 
-#### BR-001 — Sinh viên phải tồn tại và đang hoạt động
+#### BR-001 — Mã sinh viên phải tồn tại
 
-Sinh viên chỉ được gửi yêu cầu hoặc tra cứu hồ sơ khi mã sinh viên tồn tại và đang hoạt động trong danh sách sinh viên của hệ thống. Sinh viên ngừng hoạt động không được gửi yêu cầu và không được tra cứu hồ sơ cũ.
+Sinh viên được gửi yêu cầu và tra cứu hồ sơ khi mã sinh viên tồn tại trong danh sách sinh viên của hệ thống. Hệ thống không tự xác định tình trạng còn học hay thôi học; Thư ký kiểm tra thủ công tình trạng học tập trong quá trình xử lý hồ sơ theo WF-003.
 
 #### BR-002 — Loại hồ sơ phải được phép tiếp nhận
 
@@ -197,7 +197,7 @@ Sinh viên chỉ được chọn loại hồ sơ đang hoạt động do Admin c
 
 #### BR-003 — Xử lý hồ sơ gửi trùng
 
-Sinh viên được gửi nhiều yêu cầu cùng loại, không phụ thuộc trạng thái của hồ sơ đã có. Khi xác định một hồ sơ là bản gửi trùng, Thư ký phải nhập ghi chú nêu lý do trùng và chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ`. Hệ thống phải từ chối bước chuyển này nếu ghi chú trống.
+Sinh viên được gửi nhiều yêu cầu cùng loại, không phụ thuộc trạng thái của hồ sơ đã có. Hệ thống không tự xác định hồ sơ trùng. Thư ký kiểm tra thủ công và được chọn hồ sơ cụ thể cần xử lý là hồ sơ trùng; các hồ sơ còn lại không bị thay đổi. Đối với hồ sơ đã chọn, Thư ký phải nhập `invalid_reason` dạng văn bản tự do và chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ`. Ghi chú bổ sung không bắt buộc.
 
 #### BR-004 — Phạm vi hồ sơ nội bộ
 
@@ -210,7 +210,7 @@ Các bước chuyển trạng thái xử lý hợp lệ là:
 - `Chờ tiếp nhận` → `Đã tiếp nhận`.
 - `Đã tiếp nhận` → `Đang xử lý`.
 - `Đang xử lý` → `Đã xử lý xong`.
-- `Đã xử lý xong` → `Đã trả kết quả`.
+
 - `Đang xử lý` → `Cần bổ sung`.
 - `Cần bổ sung` → `Đang xử lý`.
 - `Đang xử lý` → `Không hợp lệ`.
@@ -220,11 +220,11 @@ Ngoài luồng trên:
 - Thư ký được chuyển hồ sơ từ trạng thái chưa kết thúc sang `Đã hủy`.
 - Staff chỉ được thực hiện bước `Chờ tiếp nhận` → `Đã tiếp nhận`.
 
-Các trạng thái kết thúc là `Không hợp lệ`, `Đã trả kết quả` và `Đã hủy`.
+Các trạng thái kết thúc là `Đã xử lý xong`, `Không hợp lệ` và `Đã hủy`.
 
 #### BR-006 — Lưu lịch sử trạng thái
 
-Mỗi lần trạng thái thay đổi, hệ thống phải lưu trạng thái cũ, trạng thái mới, người cập nhật, thời gian cập nhật và ghi chú.
+Mỗi lần trạng thái thay đổi, hệ thống phải lưu trạng thái mới, người cập nhật, thời gian cập nhật, ghi chú nếu có và `invalid_reason` dạng văn bản tự do nếu trạng thái mới là `Không hợp lệ`.
 
 #### BR-007 — Không xóa hồ sơ đã tiếp nhận
 
@@ -236,25 +236,29 @@ Phê duyệt cuối được thực hiện ngoài hệ thống. Trong thời gia
 
 #### BR-009 — Điều kiện hồ sơ không hợp lệ
 
-Thư ký được chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ` khi xảy ra ít nhất một trong các trường hợp sau:
+Khi chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ`, Thư ký phải kiểm tra thủ công và nhập `invalid_reason` dưới dạng văn bản tự do, tối đa 200 ký tự. `invalid_reason` không bị giới hạn trong một danh sách giá trị cố định.
 
-- Hồ sơ không đáp ứng điều kiện xử lý.
-- Sinh viên không đủ điều kiện.
-- Hồ sơ là bản gửi trùng.
+Hệ thống không tự đánh giá điều kiện xử lý, điều kiện của Sinh viên hoặc tự xác định hồ sơ trùng. Hệ thống phải từ chối chuyển sang `Không hợp lệ` nếu `invalid_reason` bị bỏ trống, chỉ chứa khoảng trắng hoặc vượt quá 200 ký tự. Ghi chú bổ sung là tùy chọn và không phụ thuộc vào nội dung của `invalid_reason`.
+
+Khi trạng thái khác `Không hợp lệ`, `invalid_reason` bắt buộc là `NULL`; client không được gửi lý do không hợp lệ cho các transition đó. Quy tắc hai chiều này phải được bảo vệ tại Service và database constraint.
 
 #### BR-010 — Mã hồ sơ
 
 Mã hồ sơ phải tuân theo định dạng `HS-YYYYMMDD-XXXXXXXX`, ví dụ `HS-20260728-7K4M2Q9R`, trong đó:
 
 - `HS` là tiền tố cố định.
-- `YYYYMMDD` là ngày hệ thống tạo yêu cầu theo múi giờ vận hành được xác nhận tại OQ-009.
+- `YYYYMMDD` là ngày hệ thống tạo yêu cầu theo múi giờ `Asia/Ho_Chi_Minh` (UTC+7).
 - `XXXXXXXX` là chuỗi ngẫu nhiên gồm tám ký tự lấy từ tập `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Tập ký tự không chứa `I`, `O`, `0` và `1`.
 
 Mã hồ sơ hợp lệ phải khớp biểu thức `^HS-\d{8}-[A-HJ-NP-Z2-9]{8}$`. Mã phải do hệ thống tự sinh, duy nhất trên toàn hệ thống và không được chỉnh sửa sau khi tạo. Nếu mã vừa sinh đã tồn tại, hệ thống phải sinh mã khác trước khi lưu hồ sơ.
 
 #### BR-011 — Quản lý dữ liệu có liên kết
 
-Tài khoản, loại hồ sơ và sinh viên đã được liên kết với dữ liệu hồ sơ hoặc lịch sử xử lý không được xóa vật lý; Admin chỉ được khóa hoặc ngừng sử dụng.
+Tài khoản và loại hồ sơ không được xóa vật lý; Admin phải khóa tài khoản hoặc ngừng sử dụng loại hồ sơ. Sinh viên đã liên kết với hồ sơ không được xóa vật lý; chỉ Sinh viên chưa có liên kết mới được phép xóa.
+
+#### BR-012 — Múi giờ hệ thống
+
+Hệ thống phải sử dụng múi giờ `Asia/Ho_Chi_Minh` (UTC+7) để hiển thị ngày giờ, xác định ngày và tháng trong báo cáo, và tạo phần `YYYYMMDD` của mã hồ sơ. Cách biểu diễn thời gian khi lưu trữ thuộc thiết kế kỹ thuật nhưng không được làm thay đổi giá trị ngày giờ hiển thị theo múi giờ này.
 
 ## Main Workflows
 
@@ -263,11 +267,11 @@ Tài khoản, loại hồ sơ và sinh viên đã được liên kết với d�
 1. Sinh viên nộp hồ sơ giấy trực tiếp cho Thư ký.
 2. Sinh viên truy cập website và nhập mã sinh viên.
 3. Hệ thống kiểm tra mã sinh viên.
-4. Nếu mã không tồn tại hoặc Sinh viên không hoạt động, hệ thống thông báo lỗi và dừng quy trình.
-5. Hệ thống hiển thị mã sinh viên, họ tên, lớp và khoa.
+4. Nếu mã không tồn tại, hệ thống thông báo lỗi và dừng quy trình.
+5. Hệ thống hiển thị mã sinh viên và họ tên.
 6. Hệ thống hiển thị các loại hồ sơ đang hoạt động.
 7. Sinh viên chọn một loại hồ sơ và nhấn `Gửi`.
-8. Hệ thống sinh mã hồ sơ theo BR-010, lưu yêu cầu và đặt trạng thái `Chờ tiếp nhận`, kể cả khi Sinh viên đã có hồ sơ cùng loại.
+8. Hệ thống sinh mã hồ sơ theo BR-010, lưu yêu cầu và đặt trạng thái `Chờ tiếp nhận`, kể cả khi Sinh viên đã có hồ sơ cùng loại; bước khởi tạo không tạo lịch sử trạng thái.
 9. Hệ thống hiển thị kết quả gửi thành công và mã hồ sơ.
 
 ### WF-002 — Staff tiếp nhận hồ sơ
@@ -285,22 +289,22 @@ Tài khoản, loại hồ sơ và sinh viên đã được liên kết với d�
 1. Thư ký đăng nhập.
 2. Thư ký xem, tìm kiếm hoặc lọc hồ sơ khoa CNTT.
 3. Thư ký xác nhận tiếp nhận nếu hồ sơ vẫn ở trạng thái `Chờ tiếp nhận`.
-4. Thư ký chuyển hồ sơ từ `Đã tiếp nhận` sang `Đang xử lý`.
-5. Nếu cần bổ sung, Thư ký chuyển hồ sơ sang `Cần bổ sung`.
-6. Sau khi có thể tiếp tục, Thư ký chuyển hồ sơ từ `Cần bổ sung` về `Đang xử lý`.
-7. Nếu xác định hồ sơ là bản gửi trùng, Thư ký nhập ghi chú nêu lý do trùng và chuyển hồ sơ sang `Không hợp lệ`.
-8. Nếu hồ sơ không trùng, Thư ký chuyển hồ sơ giấy đến phòng ban khác để phê duyệt; trạng thái trên hệ thống vẫn là `Đang xử lý`.
-9. Nếu hồ sơ không đáp ứng điều kiện xử lý hoặc Sinh viên không đủ điều kiện, Thư ký cập nhật hồ sơ thành `Không hợp lệ`.
-10. Nếu được phê duyệt, Thư ký cập nhật hồ sơ thành `Đã xử lý xong`.
-11. Khi kết quả đã được trả, Thư ký cập nhật hồ sơ thành `Đã trả kết quả`.
+4. Thư ký chuyển hồ sơ từ `Đã tiếp nhận` sang `Đang xử lý`; nếu hồ sơ chưa có người phụ trách, hệ thống gán Thư ký đó làm người được phân công phụ trách. Staff và các transition sau không tự động ghi đè phân công này.
+5. Thư ký kiểm tra thủ công tình trạng học tập của Sinh viên. Nếu xác định Sinh viên không còn học, Thư ký nhập `invalid_reason` dạng văn bản tự do và chuyển hồ sơ sang `Không hợp lệ`.
+6. Nếu cần bổ sung, Thư ký chuyển hồ sơ sang `Cần bổ sung`.
+7. Sau khi có thể tiếp tục, Thư ký chuyển hồ sơ từ `Cần bổ sung` về `Đang xử lý`.
+8. Thư ký kiểm tra thủ công các hồ sơ. Nếu xác định có hồ sơ trùng, Thư ký chọn hồ sơ cần xử lý, nhập `invalid_reason` dạng văn bản tự do và chuyển hồ sơ đã chọn sang `Không hợp lệ`; các hồ sơ còn lại không bị thay đổi. Thư ký có thể nhập thêm ghi chú nhưng không bắt buộc.
+9. Nếu hồ sơ không trùng, Thư ký chuyển hồ sơ giấy đến phòng ban khác để phê duyệt; trạng thái trên hệ thống vẫn là `Đang xử lý`.
+10. Nếu hồ sơ không đáp ứng điều kiện xử lý hoặc Sinh viên không đủ điều kiện, Thư ký nhập `invalid_reason` dạng văn bản tự do và cập nhật hồ sơ thành `Không hợp lệ`.
+11. Nếu được phê duyệt, Thư ký cập nhật hồ sơ thành `Đã xử lý xong` và hệ thống ghi thời điểm hoàn tất. Các trạng thái khác không có thời điểm hoàn tất.
 12. Hệ thống lưu lịch sử sau mỗi thay đổi trạng thái.
 
 ### WF-004 — Sinh viên tra cứu hồ sơ
 
 1. Sinh viên nhập mã sinh viên.
-2. Hệ thống kiểm tra mã sinh viên tồn tại và đang hoạt động.
-3. Nếu mã không tồn tại hoặc Sinh viên không hoạt động, hệ thống thông báo lỗi và không trả về hồ sơ.
-4. Nếu hợp lệ, hệ thống tìm các hồ sơ gắn với mã sinh viên.
+2. Hệ thống kiểm tra mã sinh viên tồn tại trong danh sách sinh viên.
+3. Nếu mã không tồn tại, hệ thống thông báo lỗi và không trả về hồ sơ.
+4. Nếu mã tồn tại, hệ thống tìm các hồ sơ gắn với mã sinh viên.
 5. Hệ thống hiển thị danh sách hồ sơ và các trường được quy định tại FR-009.
 6. Hệ thống không cung cấp chức năng xem lịch sử xử lý cho Sinh viên.
 
@@ -325,19 +329,19 @@ Phần này mô tả dữ liệu logic cần lưu, không quy định bảng v�
 
 ### DR-001 — Dữ liệu Sinh viên
 
-Hệ thống phải lưu tối thiểu: định danh sinh viên, mã sinh viên, họ tên, lớp, khoa, email và trạng thái. Trạng thái phải hỗ trợ tối thiểu việc xác định `Đang hoạt động`, `Ngừng hoạt động` và `Buộc thôi học`.
+Hệ thống phải lưu tối thiểu: mã sinh viên dùng làm định danh, họ tên và email. Hệ thống chỉ phục vụ khoa CNTT nên không lưu lớp hoặc khoa cho từng Sinh viên; hệ thống cũng không lưu hoặc tự xác định tình trạng còn học hay thôi học.
 
 ### DR-002 — Dữ liệu Loại hồ sơ
 
-Hệ thống phải lưu tối thiểu: định danh loại hồ sơ, tên loại hồ sơ, mô tả, thời gian xử lý dự kiến và trạng thái hoạt động.
+Hệ thống phải lưu tối thiểu: định danh loại hồ sơ, tên loại hồ sơ, mô tả và trạng thái hoạt động.
 
 ### DR-003 — Dữ liệu Hồ sơ sinh viên
 
-Hệ thống phải lưu tối thiểu: định danh hồ sơ, mã hồ sơ, sinh viên, loại hồ sơ, ngày giờ gửi, trạng thái hiện tại, ghi chú, người xử lý và ngày giờ cập nhật gần nhất.
+Hệ thống phải lưu tối thiểu: định danh hồ sơ, mã hồ sơ, sinh viên, loại hồ sơ, ngày giờ gửi, trạng thái hiện tại, `invalid_reason` dạng văn bản tự do tối đa 200 ký tự nếu trạng thái hiện tại là `Không hợp lệ` và `NULL` ở trạng thái khác, ghi chú tối đa 500 ký tự của trạng thái hiện tại, Thư ký hiện được phân công phụ trách nếu có, thời điểm hoàn tất chỉ khi trạng thái là `Đã xử lý xong`, và ngày giờ cập nhật gần nhất.
 
 ### DR-004 — Dữ liệu Lịch sử xử lý
 
-Hệ thống phải lưu tối thiểu: định danh lịch sử, hồ sơ, trạng thái cũ, trạng thái mới, nội dung ghi chú, người cập nhật và ngày giờ cập nhật.
+Hệ thống phải lưu tối thiểu: định danh lịch sử, hồ sơ, trạng thái mới, `invalid_reason` dạng văn bản tự do tối đa 200 ký tự nếu trạng thái mới là `Không hợp lệ` và `NULL` ở trạng thái khác, snapshot ghi chú bất biến tối đa 500 ký tự nếu có, người cập nhật và ngày giờ cập nhật.
 
 ### DR-005 — Dữ liệu Tài khoản
 
@@ -349,7 +353,7 @@ Mã sinh viên phải xác định duy nhất một Sinh viên. Mã hồ sơ ph�
 
 ### DR-007 — Bảo toàn dữ liệu lịch sử
 
-Việc khóa hoặc ngừng sử dụng tài khoản, Sinh viên hoặc loại hồ sơ không được làm mất các liên kết đã được lưu trong hồ sơ và lịch sử xử lý.
+Việc khóa tài khoản, ngừng sử dụng loại hồ sơ hoặc chỉnh sửa thông tin Sinh viên không được làm mất các liên kết đã được lưu trong hồ sơ và lịch sử xử lý.
 
 ## Non-functional Requirements
 
@@ -417,39 +421,42 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | `Đã tiếp nhận` | Staff hoặc Thư ký đã xác nhận nhận hồ sơ giấy | Không |
 | `Đang xử lý` | Thư ký đang xử lý hoặc hồ sơ giấy đang được phòng ban khác phê duyệt ngoài hệ thống | Không |
 | `Cần bổ sung` | Hồ sơ cần thêm thông tin hoặc giấy tờ trước khi tiếp tục xử lý | Không |
-| `Đã xử lý xong` | Hồ sơ đã được phê duyệt và hoàn tất xử lý nhưng chưa ghi nhận trả kết quả | Không |
-| `Không hợp lệ` | Hồ sơ không đáp ứng điều kiện xử lý, Sinh viên không đủ điều kiện hoặc hồ sơ là bản gửi trùng | Có |
-| `Đã trả kết quả` | Kết quả đã được trả cho Sinh viên | Có |
+| `Đã xử lý xong` | Hồ sơ đã được phê duyệt và hoàn tất toàn bộ quá trình xử lý | Có |
+| `Không hợp lệ` | Thư ký đã kiểm tra thủ công và nhập lý do không hợp lệ dưới dạng văn bản tự do | Có |
+
 | `Đã hủy` | Hồ sơ đã bị Thư ký hủy theo quyền được quy định | Có |
 
 ## Acceptance Criteria
 
 ### AC-FR-001 — Kiểm tra và hiển thị Sinh viên
 
-- Với mã của một Sinh viên đang hoạt động, hệ thống trả về đúng mã sinh viên, họ tên, lớp và khoa của bản ghi tương ứng.
-- Với mã không tồn tại hoặc Sinh viên không hoạt động, hệ thống hiển thị lỗi, không cho phép gửi yêu cầu và không trả về danh sách hồ sơ cũ.
+- Với mã sinh viên tồn tại, hệ thống trả về đúng mã sinh viên và họ tên của bản ghi tương ứng.
+- Với mã sinh viên không tồn tại, hệ thống hiển thị lỗi, không cho phép gửi yêu cầu và không trả về danh sách hồ sơ.
 
 ### AC-FR-002 — Gửi yêu cầu hồ sơ
 
-- Với Sinh viên hợp lệ và loại hồ sơ đang hoạt động, một lần nhấn `Gửi` tạo đúng một hồ sơ, kể cả khi đã tồn tại hồ sơ cùng loại.
+- Với mã sinh viên tồn tại và loại hồ sơ đang hoạt động, một lần nhấn `Gửi` tạo đúng một hồ sơ, kể cả khi đã tồn tại hồ sơ cùng loại.
 - Hồ sơ mới chứa đúng Sinh viên, loại hồ sơ, thời gian gửi, mã hồ sơ duy nhất và trạng thái `Chờ tiếp nhận`.
-- Mã hồ sơ mới khớp biểu thức `^HS-\d{8}-[A-HJ-NP-Z2-9]{8}$`; phần `YYYYMMDD` bằng ngày tạo yêu cầu theo múi giờ vận hành.
+- Mã hồ sơ mới khớp biểu thức `^HS-\d{8}-[A-HJ-NP-Z2-9]{8}$`; phần `YYYYMMDD` bằng ngày tạo yêu cầu theo múi giờ `Asia/Ho_Chi_Minh` (UTC+7).
 - Hai hồ sơ bất kỳ không có cùng mã hồ sơ.
 - Khi bộ sinh mã trả về một mã đã tồn tại, hệ thống không lưu mã trùng và sinh mã khác trước khi tạo hồ sơ.
 - Sau khi hồ sơ được tạo, yêu cầu thay đổi mã hồ sơ bị hệ thống từ chối.
+- Public Submission không tạo bản ghi `document_status_history`.
 
 ### AC-FR-003 — Gửi và xử lý hồ sơ trùng
 
 - Khi Sinh viên đã có một hồ sơ cùng loại ở bất kỳ trạng thái nào, một lần gửi hợp lệ tiếp theo vẫn tạo đúng một hồ sơ mới có mã hồ sơ riêng và trạng thái `Chờ tiếp nhận`.
-- Khi Thư ký xác định hồ sơ là bản gửi trùng và nhập ghi chú nêu lý do trùng, hệ thống cho phép chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ`.
-- Khi Thư ký xác định hồ sơ là bản gửi trùng nhưng không nhập ghi chú, hệ thống từ chối chuyển sang `Không hợp lệ` và giữ nguyên trạng thái hiện tại.
-- Sau khi hồ sơ trùng được chuyển sang `Không hợp lệ`, Sinh viên tra cứu được trạng thái và ghi chú nêu lý do trùng.
+- Việc tồn tại nhiều hồ sơ cùng Sinh viên và cùng loại không làm hệ thống tự động chuyển bất kỳ hồ sơ nào sang `Không hợp lệ`.
+- Khi có nhiều hồ sơ cùng loại, Thư ký chọn được một hồ sơ cụ thể để xử lý là hồ sơ trùng.
+- Khi Thư ký chọn hồ sơ cần xử lý và nhập `invalid_reason` có ít nhất một ký tự không phải khoảng trắng, không vượt quá 200 ký tự, hệ thống cho phép chuyển hồ sơ đã chọn từ `Đang xử lý` sang `Không hợp lệ`; trạng thái các hồ sơ còn lại không thay đổi.
+- Khi Thư ký không nhập `invalid_reason`, chỉ nhập khoảng trắng hoặc nhập quá 200 ký tự, hệ thống từ chối chuyển hồ sơ đã chọn sang `Không hợp lệ` và giữ nguyên trạng thái hiện tại.
+- Sau khi hồ sơ trùng được chuyển sang `Không hợp lệ`, Sinh viên tra cứu được trạng thái, `invalid_reason` và ghi chú bổ sung nếu Thư ký đã nhập.
 
 ### AC-FR-004 — Tra cứu hồ sơ
 
 - Khi nhập một mã sinh viên có hồ sơ, hệ thống chỉ trả về các hồ sơ gắn với mã đó.
-- Mỗi kết quả hiển thị đủ mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, ghi chú và ngày cập nhật gần nhất.
-- Nếu Thư ký đã nhập ghi chú hiện tại, kết quả tra cứu hiển thị đúng ghi chú đó. Việc không nhập ghi chú chỉ được chấp nhận đối với các bước cập nhật không thuộc trường hợp hồ sơ trùng chuyển sang `Không hợp lệ`.
+- Mỗi kết quả hiển thị đủ mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, `invalid_reason` nếu trạng thái là `Không hợp lệ`, ghi chú bổ sung nếu có và ngày cập nhật gần nhất.
+- Nếu lần chuyển trạng thái hiện tại có ghi chú, kết quả tra cứu hiển thị đúng ghi chú đó. Nếu lần chuyển mới không có ghi chú, kết quả không hiển thị lại ghi chú của trạng thái trước. Ghi chú tối đa 500 ký tự và không ảnh hưởng đến việc kiểm tra `invalid_reason`.
 - Sinh viên không có giao diện hoặc API để xem danh sách lịch sử thay đổi trạng thái.
 
 ### AC-FR-005 — Đăng nhập và phân quyền
@@ -471,36 +478,42 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 - Thư ký thực hiện được từng bước chuyển hợp lệ tại BR-005.
 - Mỗi bước chuyển không được liệt kê tại BR-005 bị hệ thống từ chối, ngoại trừ quyền hủy tại FR-021.
 - Hồ sơ giữ trạng thái `Đang xử lý` trong thời gian chờ phòng ban khác phê duyệt.
-- Sau kết quả phê duyệt hợp lệ, Thư ký chuyển được hồ sơ sang `Đã xử lý xong` và sau đó sang `Đã trả kết quả`.
-- Khi hồ sơ không đáp ứng điều kiện xử lý, Thư ký chuyển được hồ sơ từ `Đang xử lý` sang `Không hợp lệ`.
-- Khi Sinh viên không đủ điều kiện, Thư ký chuyển được hồ sơ từ `Đang xử lý` sang `Không hợp lệ`.
-- Khi hồ sơ đáp ứng điều kiện xử lý, Sinh viên đủ điều kiện và hồ sơ không phải bản gửi trùng, hệ thống từ chối bước chuyển từ `Đang xử lý` sang `Không hợp lệ`.
-- Với hồ sơ trùng, hệ thống chỉ cho phép chuyển từ `Đang xử lý` sang `Không hợp lệ` khi Thư ký đã nhập ghi chú nêu lý do trùng.
+- Sau kết quả phê duyệt hợp lệ, Thư ký chuyển được hồ sơ sang trạng thái kết thúc `Đã xử lý xong`.
+- Khi nhập `invalid_reason` có ít nhất một ký tự không phải khoảng trắng và không vượt quá 200 ký tự, Thư ký chuyển được hồ sơ từ `Đang xử lý` sang `Không hợp lệ`.
+- `invalid_reason` không bị giới hạn trong một danh sách giá trị cố định.
+- Khi không nhập `invalid_reason`, chỉ nhập khoảng trắng hoặc nhập quá 200 ký tự, hệ thống từ chối chuyển hồ sơ từ `Đang xử lý` sang `Không hợp lệ`.
+- Khi trạng thái mới khác `Không hợp lệ`, hệ thống từ chối input có `invalid_reason` và dữ liệu lưu phải có `invalid_reason = NULL`.
+- Hệ thống không tự xác định hồ sơ có đáp ứng điều kiện xử lý, Sinh viên còn học, Sinh viên có đủ điều kiện hoặc hồ sơ có bị trùng hay không.
+- Ghi chú bổ sung không bắt buộc và nội dung ghi chú không ảnh hưởng đến việc cho phép chuyển hồ sơ sang `Không hợp lệ`.
+- Khi Thư ký đầu tiên chuyển hồ sơ từ `Đã tiếp nhận` sang `Đang xử lý`, hồ sơ chưa được phân công được gán cho Thư ký đó; Staff và các transition tiếp theo không tự động ghi đè người được phân công.
+- `completed_at` được đặt khi chuyển sang `Đã xử lý xong`; tất cả trạng thái khác có `completed_at = NULL`.
 
 ### AC-FR-008 — Lưu lịch sử
 
-- Sau mỗi lần đổi trạng thái thành công, hệ thống tạo đúng một bản ghi lịch sử chứa trạng thái cũ, trạng thái mới, người cập nhật, thời gian cập nhật và ghi chú.
+- Sau mỗi lần đổi trạng thái thành công, hệ thống tạo đúng một bản ghi lịch sử chứa trạng thái mới, người cập nhật, thời gian cập nhật, ghi chú bổ sung nếu có và `invalid_reason` dạng văn bản tự do nếu trạng thái mới là `Không hợp lệ`; thời gian hiển thị theo `Asia/Ho_Chi_Minh` (UTC+7).
+- Bản ghi lịch sử đầu tiên được tạo khi Staff hoặc Thư ký chuyển hồ sơ từ `Chờ tiếp nhận` sang `Đã tiếp nhận`; hồ sơ vừa được Public Submission tạo chưa có lịch sử.
 - Một lần chuyển trạng thái bị từ chối không tạo bản ghi lịch sử.
+- Ghi chú và các trường của lịch sử cũ không thay đổi khi hồ sơ tiếp tục chuyển trạng thái.
 
 ### AC-FR-009 — Quản lý tài khoản
 
 - Admin thêm, xem, sửa, khóa và mở khóa được tài khoản Staff/Thư ký.
-- Admin xóa được tài khoản chưa có liên kết lịch sử xử lý.
-- Hệ thống từ chối xóa tài khoản đã có liên kết lịch sử và vẫn cho phép Admin khóa tài khoản đó.
+- Hệ thống không cung cấp thao tác hoặc endpoint hard delete tài khoản.
+- Tài khoản bị khóa vẫn được giữ nguyên các liên kết lịch sử đã phát sinh.
 
 ### AC-FR-010 — Quản lý loại hồ sơ và Sinh viên
 
-- Admin thêm, xem, sửa, kích hoạt và ngừng sử dụng được loại hồ sơ và Sinh viên.
+- Admin thêm, xem, sửa, kích hoạt và ngừng sử dụng được loại hồ sơ; hệ thống không cung cấp hard delete loại hồ sơ. Admin đồng thời thêm, xem, sửa và xóa được Sinh viên chưa liên kết với hồ sơ.
 - Loại hồ sơ ngừng hoạt động không xuất hiện trong danh sách cho Sinh viên chọn.
-- Sinh viên ngừng hoạt động không thể gửi yêu cầu.
-- Hệ thống từ chối xóa loại hồ sơ hoặc Sinh viên đã được liên kết với hồ sơ.
+- Sinh viên có mã tồn tại được phép gửi yêu cầu; tình trạng còn học hay thôi học do Thư ký kiểm tra thủ công trong quá trình xử lý.
+- Hệ thống từ chối xóa Sinh viên đã được liên kết với hồ sơ; loại hồ sơ chỉ được ngừng sử dụng, không được xóa vật lý.
 
 ### AC-FR-011 — Báo cáo trạng thái, loại hồ sơ và thời gian
 
-- Số `Đã tiếp nhận` bằng số hồ sơ hiện có trạng thái `Đã tiếp nhận` trong tập dữ liệu báo cáo.
-- Mỗi số liệu trạng thái khác bằng số hồ sơ hiện có đúng trạng thái tương ứng.
+- Báo cáo trả đủ bảy số liệu trạng thái: `Chờ tiếp nhận`, `Đã tiếp nhận`, `Đang xử lý`, `Cần bổ sung`, `Đã xử lý xong`, `Không hợp lệ`, `Đã hủy`.
+- Mỗi số liệu trạng thái bằng số hồ sơ hiện có đúng trạng thái tương ứng trong tập dữ liệu báo cáo.
 - Số hồ sơ theo từng loại bằng số hồ sơ liên kết với loại đó trong tập dữ liệu báo cáo.
-- Báo cáo theo ngày và tháng chỉ đếm hồ sơ có ngày gửi thuộc ngày hoặc tháng được chọn.
+- Báo cáo theo ngày và tháng chỉ đếm hồ sơ có ngày gửi thuộc ngày hoặc tháng được chọn theo múi giờ `Asia/Ho_Chi_Minh` (UTC+7).
 
 ### AC-NFR-001 — Xác nhận chỉ tiêu phi chức năng
 
@@ -527,8 +540,7 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | OQ-007 | Tiêu chuẩn và cấp độ khả năng tiếp cận cho NFR-007 là gì? | Kiểm thử khả năng tiếp cận |
 | OQ-008 | Thuật toán, tham số bảo vệ mật khẩu và chính sách mật khẩu cụ thể là gì? | Bảo mật tài khoản |
 
-| OQ-009 | Múi giờ chuẩn dùng để lưu, hiển thị ngày giờ và tạo phần `YYYYMMDD` của mã hồ sơ là gì? | Dữ liệu thời gian, mã hồ sơ và báo cáo |
-| OQ-010 | Cơ chế đặt lại mật khẩu và thời hạn phiên đăng nhập nội bộ là gì? | Bảo mật và vận hành |
+| OQ-009 | Cơ chế đặt lại mật khẩu và thời hạn phiên đăng nhập nội bộ là gì? | Bảo mật và vận hành |
 
 ## Requirements Traceability Matrix
 
@@ -560,9 +572,9 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | FR-024 | Phân quyền tài khoản | Admin | WF-005 | AC-FR-005, AC-FR-009 |
 | FR-025 | Quản lý loại hồ sơ | Admin | WF-005 | AC-FR-010 |
 | FR-026 | Quản lý danh sách sinh viên | Admin | WF-005 | AC-FR-010 |
-| FR-027 | Xem thống kê tổng hợp | Admin | WF-006 | AC-FR-011 |
+| FR-027 | Xem thống kê đầy đủ bảy trạng thái | Admin | WF-006 | AC-FR-011 |
 | FR-028 | Xem thống kê theo thời gian | Admin | WF-006 | AC-FR-011 |
-| BR-001 | Sinh viên phải tồn tại và đang hoạt động | Sinh viên | WF-001, WF-004 | AC-FR-001, AC-FR-004 |
+| BR-001 | Mã sinh viên phải tồn tại | Sinh viên | WF-001, WF-004 | AC-FR-001, AC-FR-004 |
 | BR-002 | Loại hồ sơ phải được phép tiếp nhận | Sinh viên, Admin | WF-001, WF-005 | AC-FR-002, AC-FR-010 |
 | BR-003 | Xử lý hồ sơ gửi trùng | Sinh viên, Thư ký | WF-001, WF-003 | AC-FR-003 |
 | BR-004 | Phạm vi hồ sơ nội bộ | Staff, Thư ký | WF-002, WF-003 | AC-FR-006, AC-FR-007 |
@@ -573,6 +585,7 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | BR-009 | Điều kiện hồ sơ không hợp lệ | Thư ký | WF-003 | AC-FR-003, AC-FR-007 |
 | BR-010 | Mã hồ sơ | Hệ thống | WF-001 | AC-FR-002 |
 | BR-011 | Quản lý dữ liệu có liên kết | Admin | WF-005 | AC-FR-009, AC-FR-010 |
+| BR-012 | Múi giờ hệ thống | Tất cả | WF-001, WF-002, WF-003, WF-004, WF-006 | AC-FR-002, AC-FR-008, AC-FR-011 |
 | NFR-001 | Thời gian phản hồi | Tất cả | Tất cả | AC-NFR-001 |
 | NFR-002 | Tải đồng thời | Tất cả | Tất cả | AC-NFR-001 |
 | NFR-003 | Độ sẵn sàng | Tất cả | Tất cả | AC-NFR-001 |
@@ -586,4 +599,3 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | SEC-004 | Giới hạn quyền cập nhật của Staff | Staff | WF-002 | AC-FR-006, AC-SEC-001 |
 | SEC-005 | Bảo vệ thông tin xác thực | Staff, Thư ký, Admin | WF-002, WF-003, WF-005, WF-006 | AC-SEC-001 |
 | SEC-006 | Tra cứu công khai của Sinh viên | Sinh viên | WF-001, WF-004 | AC-FR-001, AC-FR-004 |
-
