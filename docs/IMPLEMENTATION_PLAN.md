@@ -101,8 +101,8 @@ P4–P8 có thể được lập trình theo dependency sau khi P0 đạt.
 |---|---|---|---|---|
 | P0-01 | Chốt runtime baseline Laravel 13.x, PHP 8.4, Composer, Node.js/npm và kiểm tra extension bắt buộc | Không | **Completed — 2026-07-30** | Herd PHP 8.4.23 và extension đạt; Composer 2.10.2 qua User PATH; baseline Node 24.16.0/npm 11.13.0 được ghi tại `.nvmrc` và `docs/evidence/P0-01.md`; chưa yêu cầu `package.json` trước scaffold |
 | P0-02 | Chuẩn bị MariaDB 10.11 test riêng và xác minh capability UTC/strict mode | P0-01 | **Completed — 2026-07-30** | MariaDB 10.11.15 chạy local-only; database dev/test tách biệt; live session áp dụng được `time_zone = '+00:00'` và `STRICT_TRANS_TABLES`; evidence tại `docs/evidence/P0-02.md`; chưa kết luận Laravel connection đã áp dụng |
-| P0-03 | Tạo schema-only/sanitized baseline từ private SQL và import vào MariaDB test sạch | P0-02 | Ready | Không chứa row Sinh viên thật; metadata đủ table/index/FK/CHECK/trigger |
-| P0-04 | Thiết lập policy private import ngoài Git/CI | P0-03 | Ready | Private path được ignore/kiểm tra chống commit; CI chỉ dùng sanitized baseline và fake data |
+| P0-03 | Tạo schema-only/sanitized baseline từ private SQL và import vào MariaDB test sạch | P0-02 | **Completed — 2026-07-30** | Baseline database-agnostic không chứa data statement; import sạch vào MariaDB 10.11 test; metadata và enforcement table/index/FK/CHECK/trigger đạt; evidence tại `docs/evidence/P0-03.md` |
+| P0-04 | Thiết lập policy private import ngoài Git/CI | P0-03 | **Completed — 2026-07-30** | Private source nằm ngoài repository qua absolute `PRIVATE_IMPORT_PATH`; exact SQL allowlist và guard chống commit đạt; CI chỉ dùng sanitized baseline/fake fixtures và P1-06 phải chạy guard; evidence tại `docs/evidence/P0-04.md` |
 | P0-05 | Theo dõi decision log DG-001 đến DG-006 | Owner của từng gate | In progress | DG-001/DG-002/DG-003/DG-004/DG-006 approved; chỉ DG-005 còn pending trước P9/production |
 | P0-06 | Chốt DG-001 về access contract public | Product Owner | **Completed — 2026-07-30** | Lookup chỉ dùng `student_code`; không có xác minh bổ sung hoặc public detail/history route |
 
