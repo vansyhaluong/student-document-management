@@ -9,23 +9,15 @@
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.0.30
 
-SET SQL_MODE = NO_AUTO_VALUE_ON_ZERO;
+SET SQL_MODE = 'STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO';
 START TRANSACTION;
-SET time_zone = +00:00;
+SET time_zone = '+00:00';
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
---
--- Cơ sở dữ liệu: `student_document_management`
---
-CREATE DATABASE IF NOT EXISTS `student_document_management` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `student_document_management`;
-
--- --------------------------------------------------------
 
 --
 -- Cấu trúc bảng cho bảng `document_status_history`
