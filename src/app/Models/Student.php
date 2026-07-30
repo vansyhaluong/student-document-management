@@ -9,7 +9,9 @@ class Student extends Model
     public $timestamps = false;
 
     protected $primaryKey = 'student_code';
+
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [

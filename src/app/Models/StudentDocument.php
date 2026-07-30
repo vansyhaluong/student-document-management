@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class StudentDocument extends Model
 {
     const CREATED_AT = null; // bảng không có created_at, chỉ có submitted_at + updated_at
+
     const UPDATED_AT = 'updated_at';
 
     protected $fillable = [
