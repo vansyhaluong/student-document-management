@@ -1,5 +1,7 @@
 # REQUIREMENTS — Hệ thống quản lý tiếp nhận hồ sơ sinh viên
 
+> Trạng thái: Approved for Conditional Implementation — P0–P7; P8 blocked by DG-001/DG-006
+
 ## Project Overview
 
 Hệ thống quản lý tiếp nhận hồ sơ sinh viên hỗ trợ sinh viên khoa Công nghệ thông tin (CNTT) khai báo hồ sơ giấy đã nộp trực tiếp, nhận mã hồ sơ và tra cứu trạng thái xử lý trên website.
@@ -52,6 +54,20 @@ Hệ thống là một website phục vụ riêng cho khoa CNTT. Hệ thống qu
 - Thực hiện quy trình phê duyệt cuối trên hệ thống.
 - Thiết kế cơ sở dữ liệu vật lý hoặc chi tiết triển khai.
 
+## UI Delivery Constraints
+
+#### UI-001 — React cho khu vực nội bộ
+
+Các màn hình đăng nhập và chức năng nội bộ của Staff, Thư ký, Admin phải dùng React + TypeScript qua Inertia.js trong cùng Laravel application. Không tách frontend repository hoặc xây token-based API chỉ để phục vụ các màn hình này trong MVP.
+
+#### UI-002 — Blade cho khu vực công khai và trang lỗi
+
+Public Submission, Public Lookup, trang lỗi và HTML shell của Inertia dùng Blade. Việc phân chia công nghệ giao diện không được thay đổi workflow, quyền hoặc dữ liệu hiển thị đã quy định.
+
+#### UI-003 — Máy chủ là nguồn quyết định nghiệp vụ
+
+React có thể ẩn hoặc vô hiệu hóa thao tác để cải thiện trải nghiệm, nhưng mọi validation, authorization, transition và transaction bắt buộc vẫn phải được kiểm tra phía Laravel. Inertia dùng web route, session authentication và CSRF hiện có.
+
 ## User Roles
 
 | Vai trò | Mô tả | Quyền chính |
@@ -95,11 +111,11 @@ Hệ thống phải tạo yêu cầu mới khi Sinh viên gửi hồ sơ cùng l
 
 #### FR-008 — Tra cứu danh sách hồ sơ
 
-Hệ thống phải cho phép Sinh viên có mã tồn tại trong danh sách sinh viên nhập mã sinh viên để xem danh sách hồ sơ gắn với mã đó mà không cần đăng nhập.
+Hệ thống phải cho phép Sinh viên tra cứu toàn bộ danh sách hồ sơ gắn với mã sinh viên. Cơ chế truy cập, input xác minh và biện pháp chống enumeration của Public Submission/Public Lookup chưa được phê duyệt và phải được chốt tại DG-001 trước khi triển khai P8. Tài liệu này không mặc định rằng chỉ `student_code` là đủ để được phép tra cứu.
 
 #### FR-009 — Hiển thị thông tin tra cứu hồ sơ
 
-Đối với mỗi hồ sơ trong kết quả tra cứu, hệ thống phải hiển thị mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, lý do `Không hợp lệ` nếu có, ghi chú hiện tại của Thư ký nếu có và ngày cập nhật gần nhất. Sinh viên không có chức năng xem lịch sử xử lý.
+Đối với mỗi hồ sơ trong danh sách kết quả, hệ thống phải hiển thị mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, lý do `Không hợp lệ` nếu có, ghi chú hiện tại của Thư ký nếu có và ngày cập nhật gần nhất. Sinh viên không có chức năng xem lịch sử xử lý hoặc trang public xem chi tiết riêng một hồ sơ; `document_code` chỉ là dữ liệu hiển thị, không phải input tra cứu.
 
 ### Chức năng dùng chung cho người dùng nội bộ
 
@@ -141,7 +157,7 @@ Thư ký phải có thể chuyển hồ sơ từ `Chờ tiếp nhận` sang `Đ�
 
 #### FR-018 — Cập nhật trạng thái xử lý
 
-Thư ký phải có thể cập nhật trạng thái hồ sơ theo các bước chuyển hợp lệ được định nghĩa tại BR-005. Khi Thư ký bắt đầu xử lý bằng bước `Đã tiếp nhận` → `Đang xử lý`, hệ thống gán Thư ký đó làm người đang được phân công phụ trách nếu hồ sơ chưa có người phụ trách; các transition sau không tự động ghi đè phân công. Staff không được thay đổi phân công này. Khi chuyển hồ sơ sang `Không hợp lệ`, Thư ký phải kiểm tra thủ công và nhập `invalid_reason` dưới dạng văn bản tự do, tối đa 200 ký tự, theo BR-009. Khi phát hiện hồ sơ trùng, Thư ký tự chọn hồ sơ cần xử lý theo BR-003.
+Mọi Thư ký có tài khoản đang hoạt động phải có thể cập nhật trạng thái hồ sơ theo các bước chuyển hợp lệ được định nghĩa tại BR-005, kể cả khi hồ sơ đang được phân công cho Thư ký khác. `assigned_secretary_user_id` biểu thị người chịu trách nhiệm chính, không tạo authorization độc quyền. Khi Thư ký bắt đầu xử lý bằng bước `Đã tiếp nhận` → `Đang xử lý`, hệ thống gán Thư ký đó làm người đang được phân công phụ trách nếu hồ sơ chưa có người phụ trách; Thư ký khác xử lý hồ sơ không được tự động ghi đè phân công. Staff không được thay đổi phân công này. Khi chuyển hồ sơ sang `Không hợp lệ`, Thư ký phải kiểm tra thủ công và nhập `invalid_reason` dưới dạng văn bản tự do, tối đa 200 ký tự, theo BR-009. Khi phát hiện hồ sơ trùng, Thư ký tự chọn hồ sơ cần xử lý theo BR-003.
 
 #### FR-019 — Nhập ghi chú xử lý
 
@@ -163,11 +179,11 @@ Sau mỗi lần thay đổi trạng thái, hệ thống phải tự động lưu
 
 #### FR-023 — Quản lý tài khoản nội bộ
 
-Admin phải có thể thêm, xem, sửa, khóa và mở khóa tài khoản Staff/Thư ký. Hệ thống không cung cấp chức năng xóa vật lý tài khoản; tài khoản không còn sử dụng phải được khóa để bảo toàn liên kết và lịch sử.
+Admin phải có thể thêm, xem, sửa, khóa và mở khóa tài khoản Staff/Thư ký. Hệ thống không cung cấp chức năng xóa vật lý tài khoản; tài khoản không còn sử dụng phải được khóa để bảo toàn liên kết và lịch sử. Admin không được khóa một Thư ký đang là người chịu trách nhiệm chính của bất kỳ hồ sơ chưa kết thúc nào, trừ khi toàn bộ hồ sơ mở đó được tái phân công cho Thư ký đang hoạt động khác trong cùng thao tác nghiệp vụ.
 
 #### FR-024 — Phân quyền tài khoản
 
-Admin phải có thể gán vai trò Staff hoặc Thư ký cho tài khoản nội bộ.
+Admin phải có thể gán vai trò Staff hoặc Thư ký cho tài khoản nội bộ. Admin không được đổi vai trò Thư ký sang vai trò khác khi tài khoản đó còn là người chịu trách nhiệm chính của hồ sơ chưa kết thúc, trừ khi toàn bộ hồ sơ mở được tái phân công cho Thư ký đang hoạt động khác trong cùng thao tác nghiệp vụ.
 
 #### FR-025 — Quản lý loại hồ sơ
 
@@ -301,12 +317,12 @@ Hệ thống phải sử dụng múi giờ `Asia/Ho_Chi_Minh` (UTC+7) để hi�
 
 ### WF-004 — Sinh viên tra cứu hồ sơ
 
-1. Sinh viên nhập mã sinh viên.
-2. Hệ thống kiểm tra mã sinh viên tồn tại trong danh sách sinh viên.
+1. Sinh viên cung cấp mã sinh viên và các input xác minh theo quyết định DG-001.
+2. Hệ thống kiểm tra mã sinh viên tồn tại và áp dụng đầy đủ cơ chế truy cập/chống enumeration đã được DG-001 phê duyệt.
 3. Nếu mã không tồn tại, hệ thống thông báo lỗi và không trả về hồ sơ.
 4. Nếu mã tồn tại, hệ thống tìm các hồ sơ gắn với mã sinh viên.
-5. Hệ thống hiển thị danh sách hồ sơ và các trường được quy định tại FR-009.
-6. Hệ thống không cung cấp chức năng xem lịch sử xử lý cho Sinh viên.
+5. Hệ thống hiển thị toàn bộ danh sách hồ sơ và các trường được quy định tại FR-009 ngay trên kết quả tra cứu.
+6. Hệ thống không cung cấp route/page public xem chi tiết riêng hoặc lịch sử xử lý của một hồ sơ; contract input cuối cùng chỉ được xác định sau khi DG-001 được phê duyệt.
 
 ### WF-005 — Admin quản trị dữ liệu
 
@@ -411,7 +427,7 @@ Thông tin xác thực không được lưu dưới dạng văn bản thuần. T
 
 #### SEC-006 — Tra cứu công khai của Sinh viên
 
-Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. Hệ thống chỉ được hiển thị thông tin cơ bản tại FR-002 và thông tin hồ sơ tại FR-009 cho mã sinh viên được nhập.
+SEC-006 chỉ quy định phạm vi dữ liệu được phép trả về sau khi yêu cầu Public Lookup đã vượt qua cơ chế truy cập được phê duyệt: danh sách hồ sơ thuộc đúng mã sinh viên, chỉ gồm thông tin cơ bản tại FR-002 và các trường tại FR-009; không cung cấp public detail endpoint hoặc lịch sử xử lý. SEC-006 không phê duyệt cơ chế chống enumeration, không kết luận `student_code` là yếu tố truy cập duy nhất và không thay thế DG-001. HTTPS, validation, rate limit và các kiểm soát bổ sung sẽ được chốt cùng DG-001 trước khi mở P8.
 
 ## Status Definitions
 
@@ -455,9 +471,10 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 ### AC-FR-004 — Tra cứu hồ sơ
 
 - Khi nhập một mã sinh viên có hồ sơ, hệ thống chỉ trả về các hồ sơ gắn với mã đó.
+- Contract input, xác minh và chống enumeration của request phải đúng quyết định DG-001; trước khi DG-001 được phê duyệt, tiêu chí này ở trạng thái `Chưa thể kiểm thử`.
 - Mỗi kết quả hiển thị đủ mã hồ sơ, loại hồ sơ, ngày gửi, trạng thái hiện tại, `invalid_reason` nếu trạng thái là `Không hợp lệ`, ghi chú bổ sung nếu có và ngày cập nhật gần nhất.
 - Nếu lần chuyển trạng thái hiện tại có ghi chú, kết quả tra cứu hiển thị đúng ghi chú đó. Nếu lần chuyển mới không có ghi chú, kết quả không hiển thị lại ghi chú của trạng thái trước. Ghi chú tối đa 500 ký tự và không ảnh hưởng đến việc kiểm tra `invalid_reason`.
-- Sinh viên không có giao diện hoặc API để xem danh sách lịch sử thay đổi trạng thái.
+- Sinh viên không có route/page public xem chi tiết riêng một hồ sơ và không có giao diện hoặc API để xem danh sách lịch sử thay đổi trạng thái.
 
 ### AC-FR-005 — Đăng nhập và phân quyền
 
@@ -486,6 +503,7 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 - Hệ thống không tự xác định hồ sơ có đáp ứng điều kiện xử lý, Sinh viên còn học, Sinh viên có đủ điều kiện hoặc hồ sơ có bị trùng hay không.
 - Ghi chú bổ sung không bắt buộc và nội dung ghi chú không ảnh hưởng đến việc cho phép chuyển hồ sơ sang `Không hợp lệ`.
 - Khi Thư ký đầu tiên chuyển hồ sơ từ `Đã tiếp nhận` sang `Đang xử lý`, hồ sơ chưa được phân công được gán cho Thư ký đó; Staff và các transition tiếp theo không tự động ghi đè người được phân công.
+- Mọi Thư ký đang hoạt động thực hiện được transition hợp lệ trên hồ sơ được phân công cho Thư ký khác; assignment không phải authorization độc quyền và người được phân công không bị tự động ghi đè.
 - `completed_at` được đặt khi chuyển sang `Đã xử lý xong`; tất cả trạng thái khác có `completed_at = NULL`.
 
 ### AC-FR-008 — Lưu lịch sử
@@ -500,6 +518,8 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 - Admin thêm, xem, sửa, khóa và mở khóa được tài khoản Staff/Thư ký.
 - Hệ thống không cung cấp thao tác hoặc endpoint hard delete tài khoản.
 - Tài khoản bị khóa vẫn được giữ nguyên các liên kết lịch sử đã phát sinh.
+- Hệ thống từ chối khóa hoặc đổi vai trò Thư ký còn phụ trách hồ sơ chưa kết thúc nếu chưa tái phân công toàn bộ hồ sơ mở cho Thư ký đang hoạt động khác.
+- Tái phân công và khóa/đổi vai trò phải thành công hoặc rollback cùng nhau; không để hồ sơ mở tham chiếu một người chịu trách nhiệm chính không còn là Thư ký đang hoạt động.
 
 ### AC-FR-010 — Quản lý loại hồ sơ và Sinh viên
 
@@ -519,6 +539,13 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 
 - Trước khi kiểm thử hiệu năng và vận hành, mỗi NFR-001 đến NFR-007 phải có giá trị đo, điều kiện đo và ngưỡng đạt được phê duyệt.
 - NFR chưa có đủ ba thành phần trên được ghi nhận là `Chưa thể kiểm thử`, không được ghi nhận là `Đạt`.
+
+### AC-UI-001 — Phân chia và kiểm soát giao diện
+
+- Đăng nhập và các màn hình nội bộ Staff, Thư ký, Admin render bằng React + TypeScript/Inertia trong cùng Laravel application.
+- Public Submission/Public Lookup, trang lỗi và Inertia shell render bằng Blade.
+- Inertia mutation dùng web route, session và CSRF; gọi trực tiếp một action trái quyền vẫn bị máy chủ từ chối dù trạng thái giao diện phía client như thế nào.
+- Frontend build phải qua strict type-check, component test và production build trước khi release.
 
 ### AC-SEC-001 — Bảo vệ truy cập
 
@@ -541,6 +568,8 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | OQ-008 | Thuật toán, tham số bảo vệ mật khẩu và chính sách mật khẩu cụ thể là gì? | Bảo mật tài khoản |
 
 | OQ-009 | Cơ chế đặt lại mật khẩu và thời hạn phiên đăng nhập nội bộ là gì? | Bảo mật và vận hành |
+| OQ-010 | Cơ chế truy cập và chống enumeration cho Public Submission/Public Lookup là gì? | Chặn toàn bộ P8 qua DG-001 |
+| OQ-011 | Public Submission có yêu cầu idempotency token hay kiểm soát tương đương không? | Chặn toàn bộ P8 qua DG-006 |
 
 ## Requirements Traceability Matrix
 
@@ -593,6 +622,9 @@ Chức năng tra cứu bằng mã sinh viên không yêu cầu đăng nhập. H�
 | NFR-005 | Thời gian lưu trữ | Admin, Vận hành | Không áp dụng | AC-NFR-001 |
 | NFR-006 | Khả năng tương thích | Tất cả | Tất cả | AC-NFR-001 |
 | NFR-007 | Khả năng tiếp cận | Tất cả | Tất cả | AC-NFR-001 |
+| UI-001 | React cho khu vực nội bộ | Staff, Thư ký, Admin | WF-002, WF-003, WF-005, WF-006 | AC-UI-001 |
+| UI-002 | Blade cho khu vực công khai và trang lỗi | Sinh viên, Tất cả | WF-001, WF-004 | AC-UI-001 |
+| UI-003 | Máy chủ là nguồn quyết định nghiệp vụ | Tất cả | Tất cả | AC-UI-001, AC-SEC-001 |
 | SEC-001 | Xác thực người dùng nội bộ | Staff, Thư ký, Admin | WF-002, WF-003, WF-005, WF-006 | AC-FR-005, AC-SEC-001 |
 | SEC-002 | Phân quyền phía máy chủ | Staff, Thư ký, Admin | WF-002, WF-003, WF-005, WF-006 | AC-SEC-001 |
 | SEC-003 | Chặn truy cập trái quyền | Staff, Thư ký, Admin | WF-002, WF-003, WF-005, WF-006 | AC-FR-005, AC-SEC-001 |
