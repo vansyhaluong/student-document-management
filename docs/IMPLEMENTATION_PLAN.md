@@ -113,7 +113,7 @@ Exit criteria P0 cho phần nội bộ: P0-01 đến P0-04 đều đạt, saniti
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
 | P1-01 | Tạo Laravel 13.x application tại repository root và áp dụng runtime baseline P0-01 vào project metadata | P0-01, P0-02, P0-03, P0-04 | **Completed — 2026-07-30** | `package.json` dùng `engines` cho Node 24.16.0/npm 11.13.0 và `packageManager` là npm 11.13.0; Laravel 13.23.0 boot, PHPUnit và Vite production build đạt; guard local/CI đạt; evidence tại `docs/evidence/P1-01.md` |
-| P1-02 | Cấu hình `.env.example`, MariaDB connection UTC/strict mode, locale, timezone và session | P1-01, P0-02 | Ready | DB có UTC/`STRICT_TRANS_TABLES`; `.env.example` đặt `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120` |
+| P1-02 | Cấu hình `.env.example`, MariaDB connection UTC/strict mode, locale, timezone và session | P1-01, P0-02 | **Completed — 2026-07-30** | Dev/test dùng account và database MariaDB riêng, least privilege; Laravel connection đạt UTC/`STRICT_TRANS_TABLES`; test target được pin fail-closed; session placeholder đúng quyết định; evidence tại `docs/evidence/P1-02.md` |
 | P1-03 | Tạo cấu trúc namespace theo Architecture | P1-01 | Ready | Có Enums, Exceptions, Requests, Services, Repositories, Policies, Support |
 | P1-04 | Cấu hình code style/static analysis cho PHP và TypeScript/React | P1-08 | Ready after P1-08 | PHP format/static analysis và frontend format/lint/type-check chạy thành công |
 | P1-05 | Tạo test bootstrap dùng MariaDB test và guard chống nhầm database | P1-02 | Ready | Test từ chối chạy nếu database không mang tên/phân loại test |
