@@ -2,19 +2,26 @@
 .env
 .env.*
 !.env.example
+.env.backup
+.env.production
 
 # Dependencies
 /vendor/
 /node_modules/
+/auth.json
 
 # Laravel generated files
 /public/build/
+/public/fonts-manifest.dev.json
 /public/hot
 /public/storage
 /storage/*.key
 /storage/logs/*.log
+/storage/pail
+_ide_helper.php
 
 # Test and analysis cache
+.phpactor.json
 .phpunit.result.cache
 .phpunit.cache/
 /.phpstan.cache/
@@ -27,13 +34,19 @@
 /database/private-data/
 
 # IDE
+/.codex/
+/.cursor/
 /.idea/
+/.nova/
 /.vscode/
+/.zed/
 *.code-workspace
 
 # Operating system
 .DS_Store
 Thumbs.db
+Homestead.json
+Homestead.yaml
 
 # Logs
 npm-debug.log*
