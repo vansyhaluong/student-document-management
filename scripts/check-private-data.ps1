@@ -75,6 +75,19 @@ function Test-SanitizedSqlContent {
     return $true
 }
 
+function Test-IgnoredDependencyPath {
+    param([string] $Path)
+
+    $normalized = $Path.Replace('\', '/').TrimStart('./').ToLowerInvariant()
+
+    return (
+        $normalized -eq 'vendor' -or
+        $normalized.StartsWith('vendor/') -or
+        $normalized -eq 'node_modules' -or
+        $normalized.StartsWith('node_modules/')
+    )
+}
+
 try {
     $repositoryRootOutput = & git rev-parse --show-toplevel 2>$null
     if ($LASTEXITCODE -ne 0 -or @($repositoryRootOutput).Count -ne 1) {
@@ -117,11 +130,15 @@ try {
         Stop-WithFailure
     }
 
+    $filesystemPaths = @(
+        Convert-NullSeparatedOutput ($untrackedOutput -join '')
+        Convert-NullSeparatedOutput ($ignoredOutput -join '')
+    ) | Where-Object { -not (Test-IgnoredDependencyPath $_) }
+
     $repositoryPaths = @(
         Convert-NullSeparatedOutput ($trackedOutput -join '')
         Convert-NullSeparatedOutput ($stagedOutput -join '')
-        Convert-NullSeparatedOutput ($untrackedOutput -join '')
-        Convert-NullSeparatedOutput ($ignoredOutput -join '')
+        $filesystemPaths
     ) | Select-Object -Unique
 
     foreach ($path in $repositoryPaths) {
