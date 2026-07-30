@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: ./docker
+    container_name: doctrack_app
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: doctrack_db
+    restart: unless-stopped
+    command: --log_bin_trust_function_creators=1
+    environment:
+      MYSQL_DATABASE: doctrack
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: doctrack
+      MYSQL_PASSWORD: doctrack
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: doctrack_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
