@@ -1,15 +1,15 @@
 # ARCHITECTURE — Hệ thống quản lý tiếp nhận hồ sơ sinh viên
 
-> Trạng thái: Draft for Review  
-> Ngày cập nhật: 2026-07-29  
-> Nguồn yêu cầu: `REQUIREMENTS.md`  
+> Trạng thái: Approved for Conditional Implementation — P0–P7; P8 blocked by DG-001/DG-006
+> Ngày cập nhật: 2026-07-30
+> Nguồn yêu cầu: `REQUIREMENTS.md`
 > Baseline hiện tại: `student_document_management.sql` (private local input, không commit; CI dùng sanitized schema-only baseline)
 
 ## 1. Mục tiêu và phạm vi
 
 Kiến trúc dành cho website quản lý tiếp nhận hồ sơ sinh viên của khoa CNTT, với các nguyên tắc:
 
-- Dùng Laravel, Blade và MariaDB dưới dạng modular monolith.
+- Dùng Laravel, React + TypeScript, Inertia.js, Blade và MariaDB dưới dạng modular monolith.
 - Controller sử dụng Form Request để authorize/validate input; dependency chain bắt buộc là **Controller → Service → Repository → Model**.
 - Controller mỏng; business rule và transaction tập trung tại Service.
 - Việc đổi trạng thái và ghi lịch sử phải là một thao tác nguyên tử.
@@ -27,14 +27,15 @@ Khi sinh viên nộp hồ sơ, hệ thống chỉ kiểm tra `student_code` tồ
 |---|---|---|
 | ADR-001 | Modular monolith | Đã chốt |
 | ADR-002 | Laravel 13.x, hỗ trợ PHP 8.3–8.5; development và CI cố định PHP 8.4 | Đã chốt |
-| ADR-003 | Blade là UI chính; JSON chỉ cho AJAX/API nội bộ khi cần | Đã chốt |
+| ADR-003 | React + TypeScript qua Inertia.js là UI chính cho khu vực nội bộ; Blade dùng cho trang công khai, trang lỗi và HTML shell | Đã chốt |
 | ADR-004 | Eloquent ORM; Query Builder cho báo cáo phức tạp | Đã chốt |
 | ADR-005 | Session authentication trên bảng `users` hiện có | Đã chốt |
 | ADR-006 | Controller sử dụng Form Request; dependency chain `Controller → Service → Repository → Model` | Bắt buộc |
 | ADR-007 | Service sở hữu transaction nghiệp vụ | Bắt buộc |
 | ADR-008 | Lưu UTC, hiển thị `Asia/Ho_Chi_Minh` | Đã chốt |
-| ADR-009 | MariaDB 10.11 LTS cho production | Cần duyệt |
+| ADR-009 | MariaDB 10.11 cho development, test/CI và production target; baseline MariaDB 10.4 chỉ là nguồn import | Đã chốt — 2026-07-30 |
 | ADR-010 | Một instance ứng dụng cho MVP | Tạm thời |
+| ADR-011 | React nằm cùng Laravel application, dùng session/CSRF và web routes; không tách SPA/API repository trong MVP | Đã chốt |
 
 ## 3. Kiến trúc tổng thể
 
@@ -65,6 +66,8 @@ Quy tắc phụ thuộc:
 ```text
 HTTP → Route/Middleware → Form Request → Controller → Service
      → Repository → Eloquent Model → MariaDB
+                                  ↘ Inertia response → React page
+                                  ↘ Blade response   → Public/error page
 ```
 
 ## 4. Cấu trúc thư mục
@@ -103,12 +106,31 @@ app/
 
 bootstrap/app.php                  # Exception rendering tập trung
 database/{migrations,seeders}/
-resources/views/{public,staff,secretary,admin,components,errors}/
+resources/js/
+├── components/                    # UI dùng lại, không chứa business rule
+├── layouts/                       # Authenticated/Public layouts
+├── pages/{auth,staff,secretary,admin}/
+├── types/                         # Page props và DTO TypeScript
+├── lib/                           # Formatter/helper thuần
+└── app.tsx                        # Inertia entry point
+resources/views/{public,components,errors,app.blade.php}/
 routes/{web.php,api.php}
 tests/{Feature,Integration,Unit}/
+tests/frontend/                    # Component/UI tests
 ```
 
-`routes/api.php` và `Http/Resources` chỉ dùng khi có endpoint JSON cụ thể. Form Blade thông thường đi qua `routes/web.php`.
+`routes/api.php` và `Http/Resources` chỉ dùng khi có endpoint JSON cụ thể. Inertia và form Blade đều đi qua `routes/web.php`, dùng session authentication, CSRF và authorization phía máy chủ.
+
+### 4.1 Phân chia giao diện
+
+- React + TypeScript qua Inertia đảm nhiệm đăng nhập và toàn bộ màn hình nội bộ Staff, Thư ký, Admin: danh sách, bộ lọc, chi tiết, lịch sử, chuyển trạng thái, quản trị và báo cáo.
+- Blade đảm nhiệm Public Submission/Public Lookup, các trang lỗi và `app.blade.php` làm HTML shell cho Inertia.
+- Controller nội bộ trả `Inertia::render()` với page props tối thiểu; không tạo endpoint JSON chỉ để cấp dữ liệu cho một Inertia page.
+- Mutation từ React gửi qua Inertia form tới web route hiện có. Form Request, Policy, Service và transaction phía máy chủ vẫn là nguồn kiểm soát; trạng thái nút ở client không phải authorization.
+- Props chỉ chứa dữ liệu cần cho màn hình và dùng DTO/API Resource có chủ đích; không serialize nguyên Model hoặc relationship ngoài phạm vi.
+- Filter/sort/page nằm trong URL để tải lại, chia sẻ và back/forward đúng. Các request độc lập được tải song song; dữ liệu nặng dùng deferred props khi có số đo chứng minh cần thiết.
+- Component không định nghĩa lồng trong component khác; business state được dẫn xuất trong render thay vì đồng bộ bằng effect. Thư viện nặng chỉ tải động tại màn hình sử dụng.
+- TypeScript bật strict mode. Tên page/component dùng `PascalCase`, hook dùng `use...`, module helper dùng `camelCase`.
 
 File import dữ liệu Sinh viên thật phải nằm ngoài Git và ngoài automated test/CI. Đường dẫn private import được truyền qua environment/config tại runtime quản trị; repository chỉ chứa schema migration, sanitized metadata baseline và dữ liệu giả phục vụ test.
 
@@ -116,7 +138,7 @@ File import dữ liệu Sinh viên thật phải nằm ngoài Git và ngoài aut
 
 ### 5.1 Controller
 
-Controller chỉ nhận Form Request đã validate, gọi một use case chính và chuyển kết quả thành View/redirect/JSON. Controller không chứa business rule, query, transaction hoặc `try/catch` lặp lại.
+Controller chỉ nhận Form Request đã validate, gọi một use case chính và chuyển kết quả thành Inertia response, Blade view, redirect hoặc JSON. Controller không chứa business rule, query, transaction hoặc `try/catch` lặp lại.
 
 ```php
 final class StudentDocumentController extends Controller
@@ -230,8 +252,8 @@ Các cột thời gian không theo convention `created_at`/`updated_at` phải �
 |---|---|---|
 | Student Directory | Kiểm tra `student_code`, quản trị/import danh sách sinh viên | Ready for planning |
 | Document Catalog | Quản lý loại hồ sơ | Ready for planning |
-| Public Submission | Sinh viên nộp hồ sơ | **Implementation-blocked** |
-| Public Lookup | Sinh viên tra cứu hồ sơ | **Implementation-blocked** |
+| Public Submission | Sinh viên nộp hồ sơ theo contract được DG-001/DG-006 phê duyệt | Blocked by DG-001/DG-006 |
+| Public Lookup | Tra cứu danh sách hồ sơ theo contract và kiểm soát chống enumeration được DG-001 phê duyệt | Blocked by DG-001/DG-006 |
 | Document Reception | Staff hoặc Thư ký xác nhận tiếp nhận qua shared use case | Ready for planning |
 | Document Processing | Thư ký kiểm tra thủ công và chuyển trạng thái | Ready for planning |
 | Identity & Access | Đăng nhập, đăng xuất, session và phân quyền | Ready for planning; production policy pending |
@@ -240,7 +262,7 @@ Các cột thời gian không theo convention `created_at`/`updated_at` phải �
 
 Các module dùng chung Model khi cùng một database, nhưng tách Controller, Form Request và Service theo use case. Chỉ tách package/domain độc lập khi quy mô thực tế đòi hỏi.
 
-`Public Submission` và `Public Lookup` không được implement route, Controller, Form Request, Service hoặc view cho đến khi chốt cơ chế chống dò/khai thác dữ liệu công khai. Implement Plan chỉ được tạo decision task cho hai module này, không được tự chọn cơ chế hoặc đánh dấu task triển khai là ready.
+Cơ chế truy cập public cho MVP chưa được chốt. DG-001 phải quyết định contract input, xác minh và biện pháp chống enumeration; SEC-006 chỉ giới hạn output ở các trường FR-002/FR-009 và không phê duyệt `student_code`-only. DG-006 phải quyết định idempotency cho Public Submission. Không triển khai hoặc expose bất kỳ route P8 nào trước khi cả DG-001 và DG-006 được phê duyệt.
 
 ### 6.1 Sinh mã hồ sơ
 
@@ -285,8 +307,9 @@ Service kiểm soát transition theo `REQUIREMENTS.md`; database kiểm soát t�
 - Không giới hạn ba lý do cố định và không có quy tắc riêng cho `duplicate`.
 - Lịch sử chỉ lưu trạng thái mới, không lưu trạng thái cũ.
 - `completed_at` được đặt bằng thời điểm UTC khi chuyển sang `completed`; mọi trạng thái khác bắt buộc để `NULL`.
-- `assigned_secretary_user_id` là Thư ký hiện được phân công phụ trách, không phải người xử lý gần nhất. Staff không cập nhật cột này; cột được gán khi Thư ký bắt đầu xử lý và không tự ghi đè ở mỗi transition.
+- `assigned_secretary_user_id` là Thư ký chịu trách nhiệm chính, không phải người xử lý gần nhất và không tạo authorization độc quyền. Mọi Thư ký đang hoạt động có thể thực hiện transition hợp lệ trên mọi hồ sơ. Staff không cập nhật cột này; cột được gán khi Thư ký bắt đầu xử lý và Thư ký khác không tự ghi đè assignment khi thao tác.
 - `resolveAssignment()` chỉ gán actor khi actor là Thư ký, hồ sơ chưa được phân công, trạng thái hiện tại là `received` và trạng thái mới là `processing`; mọi trường hợp khác giữ nguyên giá trị phân công hiện tại.
+- Admin không được khóa hoặc đổi role một Thư ký còn phụ trách hồ sơ chưa kết thúc. Use case quản trị phải khóa các hồ sơ mở liên quan, tái phân công toàn bộ sang một Thư ký đang hoạt động khác và khóa/đổi role trong cùng transaction; nếu không có người thay thế hợp lệ thì từ chối thao tác.
 - Người thực hiện từng lần chuyển luôn được lưu tại `document_status_history.changed_by_user_id`.
 - Public Submission chỉ tạo `student_documents` ở `waiting_for_receipt`, không tạo `document_status_history`. History đầu tiên chỉ được tạo khi Staff hoặc Thư ký thực hiện transition `waiting_for_receipt → received`.
 
@@ -319,7 +342,7 @@ Side effect chung của mọi transition thành công:
 
 Mọi cặp current/next không có trong matrix đều bị từ chối. Staff chỉ có duy nhất transition `waiting_for_receipt → received`.
 
-Reception dùng chung `Internal\DocumentReceptionController`, `ReceiveStudentDocumentRequest` và một receive use case. Route dùng chung `/internal/documents/{document}/receive` được Policy cho phép cả Staff và Thư ký gọi; không đặt receive controller chỉ trong namespace/route group Staff. Blade UI của cả hai role submit tới cùng endpoint này.
+Reception dùng chung `Internal\DocumentReceptionController`, `ReceiveStudentDocumentRequest` và một receive use case. Route dùng chung `/internal/documents/{document}/receive` được Policy cho phép cả Staff và Thư ký gọi; không đặt receive controller chỉ trong namespace/route group Staff. React/Inertia UI của cả hai role submit tới cùng endpoint này.
 
 ## 8. Transaction và đồng thời
 
@@ -451,17 +474,19 @@ Tên method phải thể hiện mục đích:
 - Check: `chk_<table>_<rule>`.
 - Không đổi tên cột chỉ để khớp Eloquent; Model phải mapping rõ.
 
-### 10.3 Route và View
+### 10.3 Route và giao diện
 
 - URI dùng `kebab-case`, danh từ số nhiều.
 - Route name dùng dấu chấm: `documents.store`, `secretary.documents.transition`, `admin.users.index`.
-- Blade view theo thư mục và `snake_case`: `secretary.documents.show`, `admin.document_types.index`.
+- Inertia page dùng `PascalCase` theo domain: `Staff/Documents/Index`, `Admin/DocumentTypes/Index`.
+- React component dùng `PascalCase.tsx`; hook dùng `useCamelCase.ts`; type dùng tên nghiệp vụ rõ nghĩa.
+- Blade view theo thư mục và `snake_case`: `public.documents.lookup`, `errors.403`.
 
 ## 11. Xử lý lỗi tập trung
 
 Exception được ánh xạ trong `bootstrap/app.php` bằng `withExceptions()`. Controller không lặp `try/catch` cho lỗi đã chuẩn hóa.
 
-Blade/web:
+Inertia/Blade web:
 
 | Lỗi | HTTP/behavior |
 |---|---|
@@ -519,14 +544,15 @@ Nguyên tắc:
 
 ## 12. Response chuẩn
 
-### 12.1 Blade/web
+### 12.1 Inertia/Blade web
 
 Áp dụng Post/Redirect/Get:
 
-- GET thành công trả `view(...)`.
+- GET nội bộ thành công trả `Inertia::render(...)`; GET công khai/trang lỗi trả `view(...)`.
 - POST/PATCH/DELETE thành công redirect tới route ổn định và flash `success`.
 - Validation thất bại để Laravel redirect back với errors và old input.
 - Business rule thất bại redirect back với key lỗi `business`.
+- Inertia tự chuyển validation/flash thành page props theo middleware chia sẻ; không tự tạo JSON envelope cho Inertia.
 - Form Blade thông thường không trả JSON.
 
 Flash key thống nhất: `success`, `warning`, `error`.
@@ -557,9 +583,7 @@ Không trả envelope khi dùng `204 No Content`.
 
 ## 13. Route và request lifecycle
 
-Route công khai:
-
-> **Implementation-blocked:** Danh sách dưới đây chỉ mô tả route dự kiến. Không đăng ký các route này trước khi decision về chống dò dữ liệu công khai được phê duyệt.
+Route công khai dưới đây chỉ là candidate surface và bị khóa bởi DG-001/DG-006; không được đăng ký trước khi hai gate được phê duyệt:
 
 ```text
 GET  /                         → trang nộp/tra cứu
@@ -568,6 +592,8 @@ POST /documents                → nộp hồ sơ
 GET  /documents/lookup         → form tra cứu
 POST /documents/lookup         → kết quả tra cứu
 ```
+
+Contract input của Public Lookup phải theo DG-001 và output chỉ gồm danh sách theo FR-002/FR-009. Không tạo route dạng `/documents/{document}` hoặc `/documents/{documentCode}` cho public detail. Cách sử dụng `document_code`, nếu có, chỉ được quyết định tại DG-001.
 
 Route nội bộ:
 
@@ -595,7 +621,7 @@ GET    /admin/reports
 
 Shared reception route nằm trong authenticated internal group, không nằm trong role-only Staff group. Policy của receive action chấp nhận đúng hai role Staff và Thư ký; cả hai UI dùng cùng Form Request, Controller và Service use case.
 
-Endpoint công khai phải có rate limit và không cho phép dò hồ sơ bằng ID tuần tự.
+Endpoint công khai dùng HTTPS, validation và các kiểm soát được DG-001 phê duyệt. Không được suy diễn quyền xem danh sách chỉ từ SEC-006; DG-001 là nguồn quyết định access contract và chống enumeration.
 
 Thứ tự xử lý:
 
@@ -650,10 +676,17 @@ Eloquent dùng cho CRUD và relationship. Query Builder dùng trong Repository b
 
 - Route công khai/nội bộ và Form Request validation.
 - Authentication, inactive user, session và Policy/role.
-- Blade redirect/flash/errors và JSON envelope/status.
+- Inertia page props, validation/flash/errors; Blade public/error behavior và JSON envelope/status.
 - CSRF và rate limit.
 
-### 15.3 Integration test
+### 15.3 Frontend test
+
+- TypeScript type-check, lint và component test chạy trong CI.
+- Kiểm tra loading, empty, validation, authorization-hidden state và error state của page/component nội bộ.
+- End-to-end kiểm tra filter trong URL, back/forward, phân trang và các mutation quan trọng qua Inertia.
+- Test server-side vẫn bắt buộc cho authorization; frontend test không thay thế Feature/Integration test Laravel.
+
+### 15.4 Integration test
 
 - Chạy trên MariaDB test, không dùng SQLite thay thế test constraint đặc thù.
 - Không import dữ liệu thật của 8.145 Sinh viên vào automated test hoặc CI. Metadata comparison dùng schema-only/sanitized baseline; test nghiệp vụ dùng factory/fixture giả, tối thiểu theo từng case.
@@ -675,12 +708,14 @@ flowchart LR
     Proxy --> PHP[PHP-FPM + Laravel]
     PHP --> DB[(MariaDB)]
     PHP --> Session[(Session store)]
+    Build[Vite build: React assets] --> Proxy
 ```
 
 - Một Laravel application và một MariaDB database cho MVP.
 - HTTPS bắt buộc; secret môi trường không commit.
 - Production dùng `APP_ENV=production`, `APP_DEBUG=false`.
 - Cache config, route và view trong quy trình deploy.
+- Chạy `npm ci`, type-check, frontend tests và `npm run build`; chỉ deploy asset Vite đã build cùng đúng Laravel release.
 - Migration là bước deploy riêng, có backup và rollback plan.
 - Migration rehearsal trên bản sao dữ liệu thật chỉ được chạy trong môi trường private có kiểm soát truy cập; không đưa dữ liệu, log chứa dữ liệu, cache hoặc artifact lên CI. Mỗi lần diễn tập phải có owner, thời hạn lưu giữ và bằng chứng xóa bản sao sau khi hoàn tất.
 - Database session thuận lợi khi nâng lên nhiều instance; file session chỉ phù hợp một instance.
@@ -694,22 +729,22 @@ flowchart LR
 
 Các điểm này không chặn việc tạo Laravel skeleton, migration và thiết kế giao diện:
 
-1. NFR: tải đồng thời, response time, availability, RPO/RTO và retention.
-2. Chính sách mật khẩu/session, khóa đăng nhập và reset mật khẩu.
-3. Cách tạo Admin đầu tiên và quản lý secret ban đầu.
-4. Cơ chế chống dò dữ liệu ở tra cứu công khai.
-5. Có cần idempotency token chống double-submit không.
-6. Phiên bản MariaDB production và kế hoạch nâng từ MariaDB 10.4.
+1. DG-001: access contract và chống enumeration cho Public Submission/Public Lookup.
+2. NFR: tải đồng thời, response time, availability, RPO/RTO và retention.
+3. Chính sách mật khẩu/session, khóa đăng nhập và reset mật khẩu.
+4. Cách tạo Admin đầu tiên và quản lý secret ban đầu.
+5. DG-006: idempotency cho Public Submission.
 
 ## 18. Điều kiện sẵn sàng triển khai
 
-Có thể tạo Laravel skeleton khi:
+Có thể tạo Laravel skeleton khi toàn bộ P0-01 đến P0-04 đã đạt:
 
 - Chấp nhận ADR-001 đến ADR-007.
 - Có PHP trong dải 8.3–8.5; development và CI cùng dùng chính xác PHP 8.4, kèm Composer và extension Laravel/MariaDB cần thiết.
-- Giữ Blade là UI chính; API chỉ bổ sung cho nhu cầu cụ thể.
+- Development, test/CI và production target dùng MariaDB 10.11; baseline 10.4 chỉ dùng làm nguồn import đã sanitize.
+- Giữ React + TypeScript/Inertia cho UI nội bộ và Blade cho public/error; không tách SPA/API riêng trong MVP.
 - Tạo Repository interface và Service boundary đúng tài liệu.
 - Migration tái hiện đúng baseline database đã chốt.
-- Implement Plan đánh dấu `Public Submission` và `Public Lookup` là blocked; chỉ decision/research task được phép chạy trước khi cơ chế chống dò được chốt.
+- P8 tiếp tục bị khóa cho đến khi DG-001 và DG-006 cùng được phê duyệt; SEC-006 chỉ giới hạn output và không mở khóa P8.
 
 Các NFR và open question ở mục 17 phải được theo dõi bằng decision log, không tự suy diễn thành business rule.
