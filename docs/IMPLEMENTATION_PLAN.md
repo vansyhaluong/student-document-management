@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN — Hệ thống quản lý tiếp nhận hồ sơ sinh viên
 
-> Trạng thái: Approved for Conditional Implementation — P0–P7; P8 blocked by DG-001/DG-006
+> Trạng thái: Approved for Conditional Implementation — P0–P8; production gates pending
 > Ngày lập: 2026-07-30
 > Nguồn: `REQUIREMENTS.md`, `ARCHITECTURE.md`, private local `student_document_management.sql`
 > Phạm vi: Lập kế hoạch Laravel + React/Inertia, chưa triển khai source code
@@ -15,7 +15,7 @@ Controller → Service → Repository → Model
 
 Controller sử dụng Form Request để authorize và validate. Hệ thống phải tái hiện đúng schema, workflow, quyền, lịch sử trạng thái, báo cáo và convention đã chốt.
 
-Kế hoạch này không tự giải quyết các open question còn lại. P0–P7 được phê duyệt để triển khai có điều kiện theo dependency. Toàn bộ P8 bị khóa cho đến khi DG-001 và DG-006 cùng được phê duyệt; SEC-006 chỉ giới hạn output Public Lookup và không phê duyệt cơ chế chống enumeration.
+Kế hoạch này không tự giải quyết các open question còn lại. P0–P8 được phê duyệt để triển khai có điều kiện theo dependency. DG-001 đến DG-004 và DG-006 đã chốt; DG-005 vẫn Pending và bắt buộc chốt trước P9/production.
 
 ## 2. Kết quả hoàn thành mong đợi
 
@@ -27,17 +27,18 @@ Kế hoạch này không tự giải quyết các open question còn lại. P0�
 - Lỗi và response tuân chuẩn Architecture.
 - Báo cáo trả đủ bảy trạng thái và dùng biên thời gian UTC nửa mở.
 - Integration test chạy trên MariaDB thật cho hành vi phụ thuộc constraint/locking.
-- Hai module public chỉ được triển khai sau khi access/anti-enumeration contract tại DG-001 và idempotency tại DG-006 cùng được phê duyệt.
+- Hai module public triển khai theo DG-001 và DG-006 đã duyệt: lookup `student_code`-only; submission chống retry/double-submit bằng bảng `public_submission_idempotency`, MariaDB transaction và unique constraint.
+- MVP chạy một application instance, không dùng Redis; session cấu hình `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120` và không có remember-me. Thiết kế không phụ thuộc process-local state để còn nâng cấp nhiều instance sau MVP.
 
 ## 3. Fact, giả định và giới hạn
 
 ### 3.1 Fact
 
 - Repository hiện chỉ có tài liệu và SQL baseline, chưa có Laravel application.
-- Schema có năm bảng: `students`, `document_types`, `student_documents`, `document_status_history`, `users`.
+- Baseline import có năm bảng nghiệp vụ: `students`, `document_types`, `student_documents`, `document_status_history`, `users`. Application bổ sung bảng `sessions` và `public_submission_idempotency` bằng migration.
 - UI nội bộ dùng React + TypeScript qua Inertia; Blade dùng cho public/error pages; JSON chỉ dùng cho endpoint có nhu cầu rõ.
 - User và document type không hard delete; Student chỉ xóa khi chưa liên kết.
-- NFR định lượng và một số chính sách production vẫn chưa chốt.
+- Các chỉ tiêu NFR định lượng tại DG-005 vẫn chưa chốt.
 - File SQL hiện có chứa dữ liệu Sinh viên thật là private input, không phải automated-test fixture và không được đưa vào Git/CI artifact.
 
 ### 3.2 Giả định an toàn cho việc lập plan
@@ -60,12 +61,12 @@ Kế hoạch này không tự giải quyết các open question còn lại. P0�
 
 | Gate | Quyết định cần có | Ảnh hưởng | Owner | Deadline | Trạng thái |
 |---|---|---|---|---|---|
-| DG-001 | Access contract và chống enumeration cho Public Submission/Public Lookup | Chặn toàn bộ P8 | Product Owner + Security Owner | 2026-08-03 | Pending |
-| DG-002 | Thuật toán/tham số mật khẩu, session lifetime, lockout và reset password | Chặn production sign-off của Identity & Access | Security Owner | 2026-08-03 | Pending |
-| DG-003 | Cách bootstrap Admin đầu tiên | Chặn deploy môi trường đầu tiên | Technical Lead + System Owner | 2026-08-03 | Pending |
+| DG-001 | Access contract cho Public Submission và Public Lookup | Public Lookup chỉ dùng `student_code`, không có xác minh bổ sung hoặc public detail/history route | Product Owner | 2026-07-30 | **Approved — 2026-07-30** |
+| DG-002 | Thuật toán/tham số mật khẩu, session lifetime, login protection và reset password | Argon2id, tối thiểu 8 ký tự, không composition rule; chặn mật khẩu phổ biến/đã lộ khi khả dụng; database session expire-on-close + idle 120 phút; không Redis/remember-me/hard-lock; lỗi login chung | Security Owner | 2026-07-30 | **Approved — amended 2026-07-30** |
+| DG-003 | Cách bootstrap Admin đầu tiên | Artisan command tương tác; không credential mặc định; không nhận password qua argument | Technical Lead + System Owner | 2026-07-30 | **Approved — 2026-07-30** |
 | DG-004 | Phiên bản MariaDB cho development, test/CI và production target | Chặn production migration rehearsal | Technical Lead + Database Owner | 2026-07-30 | **Approved — MariaDB 10.11** |
 | DG-005 | NFR-001 đến NFR-007 | Chặn performance/availability/accessibility acceptance | Product Owner + Operations Owner | 2026-08-07 | Pending |
-| DG-006 | Có cần idempotency token ngoài cơ chế chống double-click hay không | Chặn toàn bộ P8 | Product Owner + Technical Lead | 2026-08-03 | Pending |
+| DG-006 | Idempotency cho Public Submission | Token server-generated, session-bound, TTL 10 phút; retry cùng token/payload trả cùng hồ sơ | Product Owner + Technical Lead | 2026-07-30 | **Approved — 2026-07-30** |
 
 ## 5. Nguyên tắc thực hiện
 
@@ -92,7 +93,7 @@ P0 Decision and environment gates
   → P9 System verification and deployment readiness
 ```
 
-P4–P7 có thể được lập trình theo dependency sau khi P0 đạt. Toàn bộ P8 bị khóa cho đến khi DG-001 và DG-006 cùng được phê duyệt.
+P4–P8 có thể được lập trình theo dependency sau khi P0 đạt.
 
 ## 7. Phase P0 — Decision và environment gates
 
@@ -102,8 +103,8 @@ P4–P7 có thể được lập trình theo dependency sau khi P0 đạt. Toàn
 | P0-02 | Chuẩn bị MariaDB 10.11 test riêng và xác minh capability UTC/strict mode | P0-01 | Ready | Development, test/CI và production target thống nhất MariaDB 10.11; server hỗ trợ session `time_zone = '+00:00'` và SQL mode `STRICT_TRANS_TABLES`; chưa kết luận Laravel connection đã áp dụng |
 | P0-03 | Tạo schema-only/sanitized baseline từ private SQL và import vào MariaDB test sạch | P0-02 | Ready | Không chứa row Sinh viên thật; metadata đủ table/index/FK/CHECK/trigger |
 | P0-04 | Thiết lập policy private import ngoài Git/CI | P0-03 | Ready | Private path được ignore/kiểm tra chống commit; CI chỉ dùng sanitized baseline và fake data |
-| P0-05 | Theo dõi decision log DG-001 đến DG-006 | Owner của từng gate | In progress | Owner/deadline đã ghi; DG-004 approved, các gate còn lại phải có quyết định được phê duyệt |
-| P0-06 | Chốt DG-001 về access contract và chống enumeration cho public | Product Owner + Security Owner | Pending | Quyết định được phê duyệt và đủ testable để mở P8 |
+| P0-05 | Theo dõi decision log DG-001 đến DG-006 | Owner của từng gate | In progress | DG-001/DG-002/DG-003/DG-004/DG-006 approved; chỉ DG-005 còn pending trước P9/production |
+| P0-06 | Chốt DG-001 về access contract public | Product Owner | **Completed — 2026-07-30** | Lookup chỉ dùng `student_code`; không có xác minh bổ sung hoặc public detail/history route |
 
 Exit criteria P0 cho phần nội bộ: P0-01 đến P0-04 đều đạt, sanitized baseline không chứa dữ liệu thật, MariaDB 10.11 server/test environment xác nhận có khả năng dùng UTC và `STRICT_TRANS_TABLES`. Việc Laravel connection thực sự áp dụng hai cấu hình thuộc P1. Không bắt đầu bất kỳ task P1 nào trước khi toàn bộ exit criteria này đạt.
 
@@ -112,7 +113,7 @@ Exit criteria P0 cho phần nội bộ: P0-01 đến P0-04 đều đạt, saniti
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
 | P1-01 | Tạo Laravel 13.x application tại repository root, pin PHP 8.4 và Node.js/npm cho development | P0-01, P0-02, P0-03, P0-04 | Blocked until P0 exit | App boot thành công; Vite chạy bằng đúng runtime đã pin |
-| P1-02 | Cấu hình `.env.example`, MariaDB connection UTC, strict SQL mode, locale và timezone hiển thị | P1-01, P0-02 | Ready | Mỗi DB session có `time_zone = '+00:00'` và SQL mode chứa `STRICT_TRANS_TABLES` |
+| P1-02 | Cấu hình `.env.example`, MariaDB connection UTC/strict mode, locale, timezone và session | P1-01, P0-02 | Ready | DB có UTC/`STRICT_TRANS_TABLES`; `.env.example` đặt `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120` |
 | P1-03 | Tạo cấu trúc namespace theo Architecture | P1-01 | Ready | Có Enums, Exceptions, Requests, Services, Repositories, Policies, Support |
 | P1-04 | Cấu hình code style/static analysis cho PHP và TypeScript/React | P1-08 | Ready after P1-08 | PHP format/static analysis và frontend format/lint/type-check chạy thành công |
 | P1-05 | Tạo test bootstrap dùng MariaDB test và guard chống nhầm database | P1-02 | Ready | Test từ chối chạy nếu database không mang tên/phân loại test |
@@ -133,6 +134,7 @@ Critical path P1: `P1-01 → P1-08 → P1-04 → P1-06 → P1-07`; P1-06 đồng
 | P2-05 | Tạo Repository contracts và Eloquent implementations theo use case | P2-03 | Ready | Service test có thể mock contract; integration test dùng implementation thật |
 | P2-06 | Tạo factories/sanitized fixtures cho Student, Document Type, User và Document | P2-01 | Ready | Test data tối thiểu theo case, không chứa row thật hoặc snapshot 8.145 Sinh viên |
 | P2-07 | Tạo private import command đọc path ngoài Git | P2-01, P0-04 | Ready, không chạy trong CI | Validate file/input; import có audit; CI không có secret/path và không chạy command |
+| P2-08 | Tạo migration cho `sessions` và `public_submission_idempotency` | P2-01 | Ready | Database session hoạt động; idempotency có token unique, session ID, payload hash, document reference và expiry |
 
 Integration tests bắt buộc:
 
@@ -142,6 +144,7 @@ Integration tests bắt buộc:
 - FK từ chối xóa Student có hồ sơ và từ chối mất liên kết history.
 - Độ dài `note`/`invalid_reason` khớp schema.
 - MariaDB session integration test fail nếu thiếu `STRICT_TRANS_TABLES`.
+- `sessions` dùng MariaDB database driver; `public_submission_idempotency` bảo vệ token bằng unique constraint.
 - CI scan/test xác nhận không có dữ liệu thật hoặc private import file trong repository/artifact.
 
 Exit criteria P2: `migrate:fresh` và rollback/rebuild trên MariaDB test thành công; metadata đối chiếu với sanitized baseline; factories không chứa dữ liệu thật; private import command/path không được CI tải hoặc chạy.
@@ -166,13 +169,13 @@ Exit criteria P3: exception/response/trace/authorization foundation, security he
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
 | P4-01 | Ánh xạ `User` Authenticatable với `password_hash` và `is_active` | P2-03 | Ready | Hash login đúng; inactive user bị từ chối |
-| P4-02 | Tạo Login Form Request, Auth Service, Controller và React/Inertia page | P3-02, P3-04, P3-06, P4-01 | Ready for non-production baseline | Login regenerate session; sai credential không tạo session; lỗi field hiển thị qua Inertia |
+| P4-02 | Tạo Login Form Request, Auth Service, Controller và React/Inertia page | P2-08, P3-02, P3-04, P3-06, P4-01 | Ready | Login regenerate database session; sai credential không tạo session, không hard-lock/đổi `users.is_active`, và luôn trả lỗi chung |
 | P4-03 | Tạo logout flow | P4-02 | Ready | Invalidate session và regenerate CSRF token |
 | P4-04 | Áp role middleware/Gates/Policies cho Staff, Thư ký, Admin | P4-02 | Ready | Direct URL/action trái quyền trả đúng 403/redirect |
-| P4-05 | Hoàn thiện password/session/lockout/reset theo DG-002 | DG-002 | Pending | Security acceptance đạt |
-| P4-06 | Tạo quy trình bootstrap Admin theo DG-003 | DG-003 | Pending | Không commit password; audit được lần bootstrap |
+| P4-05 | Triển khai chính sách password/session/login protection/reset theo DG-002 | P2-08, P4-02, DG-002 | Ready | Argon2id; tối thiểu 8 ký tự; không composition rule; chặn password phổ biến/đã lộ khi khả dụng; expire-on-close + idle 120 phút; không Redis/remember-me/hard-lock; reset tạm không ép đổi |
+| P4-06 | Tạo quy trình bootstrap Admin theo DG-003 | P4-01, DG-003 | Ready | Artisan command tương tác; không credential mặc định/password argument; không commit hoặc log password |
 
-Exit criteria P4 cho phát triển nội bộ: P4-01 đến P4-04 đạt. Production sign-off cần P4-05 và P4-06.
+Exit criteria P4: P4-01 đến P4-06 đều đạt, gồm test Argon2id, độ dài tối thiểu 8, không composition rule, kiểm tra mật khẩu phổ biến/đã lộ khi khả dụng, database session expire-on-close và idle timeout 120 phút, không remember-me, login failure chung không đổi `users.is_active`, reset mật khẩu tạm và Artisan bootstrap Admin.
 
 ## 12. Phase P5 — Administration và directories
 
@@ -272,19 +275,19 @@ Exit criteria P7 chức năng: AC-FR-011 đạt. Performance acceptance chờ DG
 
 ## 15. Phase P8 — Public Submission và Public Lookup
 
-> **Blocked toàn bộ bởi DG-001 và DG-006.** SEC-006 chỉ giới hạn phạm vi output Public Lookup, không phê duyệt access contract hoặc cơ chế chống enumeration. Không triển khai, đăng ký hoặc expose route P8 trước khi cả hai gate được phê duyệt.
+> DG-001 và DG-006 đã được phê duyệt. Public Lookup chỉ dùng `student_code`; Public Submission dùng idempotency token session-bound TTL 10 phút. P8 triển khai theo dependency bên dưới.
 
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
-| P8-00 | Chốt DG-001 và DG-006 | Owner của hai gate | Blocked | Cả access/anti-enumeration contract và idempotency được phê duyệt |
-| P8-01 | Cập nhật Requirements/Architecture theo hai quyết định | P8-00 | Blocked | Requirement, acceptance criteria, route contract và kiểm soát đã đồng bộ |
-| P8-02 | Triển khai `DocumentCodeGenerator` thuần với injected Clock/random source | P8-01, P3-01 | Blocked | Chỉ trả candidate code đúng alphabet/ngày; không Repository/insert/catch/retry |
-| P8-03 | Triển khai Student verification và active document types | P8-01, P2-05, P2-06 | Blocked | Chỉ phụ thuộc Repository; verify đúng contract DG-001; dùng dữ liệu giả/sanitized cần thiết |
-| P8-04 | Triển khai `StudentDocumentService` create/insert/collision retry | P8-02, P2-05 | Blocked | Không pre-check; chỉ retry đúng unique constraint tối đa 5; lỗi khác ném lại |
-| P8-05 | Triển khai Public Submission Form Request/Controller/Blade | P8-03, P8-04 | Blocked | Tạo waiting document, không tạo history; tuân DG-001/DG-006 |
-| P8-06 | Triển khai Public Lookup Form Request/Controller/Blade | P8-01, P2-05 | Blocked | Input/verification theo DG-001; output allowlist FR-002/FR-009; không có public detail/history route |
-| P8-07 | Áp kiểm soát nền tảng và chống enumeration cho endpoint public | P8-03, P8-05, P8-06 | Blocked | Kiểm soát được DG-001 phê duyệt hoạt động |
-| P8-08 | Áp dụng quyết định idempotency | P8-00 | Blocked | Implement và test đúng DG-006 |
+| P8-00 | Chốt DG-001 và DG-006 | Product Owner + Technical Lead | **Completed — 2026-07-30** | Access contract và idempotency đã được phê duyệt |
+| P8-01 | Đồng bộ Requirements/Architecture theo hai quyết định | P8-00 | **Completed — 2026-07-30** | Requirement, acceptance criteria, route và idempotency contract đã đồng bộ |
+| P8-02 | Triển khai `DocumentCodeGenerator` thuần với injected Clock/random source | P8-01, P3-01 | Ready | Chỉ trả candidate code đúng alphabet/ngày; không Repository/insert/catch/retry |
+| P8-03 | Triển khai Student verification và active document types | P8-01, P2-05, P2-06 | Ready | Chỉ phụ thuộc Repository; verify `student_code`; dùng dữ liệu giả/sanitized cần thiết |
+| P8-04 | Triển khai `StudentDocumentService` create/insert/collision retry | P8-02, P2-05 | Ready | Không pre-check; chỉ retry đúng unique constraint tối đa 5; lỗi khác ném lại |
+| P8-05 | Triển khai Public Submission Form Request/Controller/Blade | P8-03, P8-04, P8-08 | Ready | Tạo waiting document, không tạo history; retry cùng token không tạo hồ sơ thứ hai |
+| P8-06 | Triển khai Public Lookup Form Request/Controller/Blade | P8-01, P2-05 | Ready | Chỉ nhận `student_code`; output allowlist FR-002/FR-009; không có public detail/history route |
+| P8-07 | Áp kiểm soát nền tảng cho endpoint public | P8-03, P8-05, P8-06 | Ready | HTTPS, validation, escaping, CSRF cho mutation và rate limit chung hoạt động; không thêm xác minh danh tính |
+| P8-08 | Triển khai idempotency token cho Public Submission | P2-08, P3-01, P8-01 | Ready | Bảng MariaDB riêng; token unique, session ID, payload hash, document reference, expiry; transaction + row lock; không memory/file/Redis |
 
 Tests bắt buộc cho P8:
 
@@ -294,24 +297,30 @@ Tests bắt buộc cho P8:
 - Kết quả submit hiển thị `document_code` vừa tạo nhưng Public Lookup không nhận mã này làm input và không có public detail route theo mã hồ sơ/ID tuần tự.
 - Public Submission tạo `student_documents` ở `waiting_for_receipt` nhưng không tạo history; Staff hoặc Secretary receive mới tạo history đầu tiên.
 - Submission cùng loại vẫn tạo hồ sơ mới theo BR-003.
+- Hai request đồng thời hoặc tuần tự có cùng token và payload chỉ tạo một hồ sơ và trả cùng kết quả.
+- Test xác nhận unique constraint, transaction và `lockForUpdate()` trên `public_submission_idempotency`; nguồn quyết định không nằm trong memory, file cache, Redis hoặc session payload.
+- Cùng token nhưng payload khác, token hết hạn hoặc token không hợp lệ bị từ chối mà không tạo hồ sơ.
+- Form/token mới cho phép chủ động tạo hồ sơ mới cùng loại theo BR-003.
 - Lookup chỉ cần `student_code`, trả toàn bộ danh sách đúng mã với đúng trường FR-009; không trả lịch sử hoặc dữ liệu ngoài allowlist.
 - Request có `document_code` nhưng không có `student_code` không được xem là lookup hợp lệ; hệ thống không cung cấp public detail/history route.
-- HTTPS, validation và các kiểm soát truy cập/chống enumeration hoạt động đúng quyết định DG-001; test không được giả định trước rằng có hoặc không có OTP, CAPTCHA, đăng nhập hay yếu tố xác minh bổ sung.
+- HTTPS, validation và rate limit chung hoạt động; Public Lookup không yêu cầu OTP, CAPTCHA, đăng nhập, `document_code` hoặc yếu tố xác minh bổ sung.
 
-Exit criteria P8: DG-001 và DG-006 cùng được phê duyệt, P8-01 đến P8-08 đạt, AC-FR-001 đến AC-FR-004 và AC-SEC-001 đạt; lookup tuân access contract đã duyệt, output đúng allowlist và submission không có history trước lần receive.
+Exit criteria P8: P8-01 đến P8-08 đạt, AC-FR-001 đến AC-FR-004 và AC-SEC-001 đạt; lookup chỉ dùng `student_code`, output đúng allowlist, idempotency đúng BR-013 và submission không có history trước lần receive.
 
 ## 16. Phase P9 — System verification và deployment readiness
+
+> Không bắt đầu task P9 nào trước khi DG-005 được phê duyệt. DG-005 không chặn triển khai chức năng P0–P8.
 
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
 | P9-01 | Chạy full frontend/unit/feature/integration suite qua local và GitHub Actions | P1-07, P4–P8 theo phạm vi release | Ready khi phases hoàn tất | Type-check, frontend test/build và backend suites đều xanh; không có required check fail/flaky chưa xử lý |
 | P9-02 | Security review auth, authorization, CSRF, security headers, public surface, log redaction | P3-07, P4, P6, P8 nếu public release | Pending dependencies | AC-SEC-001, header tests và decision controls đạt |
 | P9-03 | Migration rehearsal trên bản sao dữ liệu thật trong môi trường private | P0-04, DG-004, P2 | Pending | Không chạy trên CI, không upload cache/artifact/log chứa dữ liệu; access có kiểm soát; backup/restore/rollback đạt; có retention deadline và bằng chứng xóa bản sao sau diễn tập |
-| P9-04 | Kiểm thử NFR | DG-005, functional complete | Pending | Mỗi NFR có điều kiện đo và ngưỡng đạt |
+| P9-04 | Kiểm thử NFR | DG-005, functional complete | **Blocked by DG-005** | Mỗi NFR có điều kiện đo và ngưỡng đạt |
 | P9-05 | Build/deploy rehearsal | P3-08, P9-01, P9-02, P9-03 | Pending | Vite production assets đi cùng đúng Laravel release; config/route/view cache, liveness, DB readiness và rollback hoạt động |
 | P9-06 | UAT theo acceptance criteria | Phạm vi release hoàn tất | Pending | Biên bản nghiệm thu và known issues |
 
-Chỉ gọi bản release là public MVP hoàn chỉnh khi DG-001, DG-006 và toàn bộ P8 đã hoàn tất; nếu chưa thì chỉ nghiệm thu bản nội bộ/pre-public.
+Chỉ gọi bản release là public MVP hoàn chỉnh khi toàn bộ P8 đã hoàn tất. DG-005 không chặn triển khai chức năng P0–P8 nhưng phải được chốt trước khi bắt đầu acceptance P9 và production sign-off.
 
 Exit criteria P9: CI required checks xanh trên `develop`/`main`; private migration rehearsal đạt và bản sao dữ liệu được xóa theo policy; security headers và health checks đạt; UAT/NFR được ghi rõ `Đạt` hoặc `Chưa thể kiểm thử` theo decision gates.
 
@@ -334,7 +343,7 @@ Exit criteria P9: CI required checks xanh trên `develop`/`main`; private migrat
 - Không có Controller gọi Model/DB hoặc Service gọi Eloquent/Query Builder.
 - Không log credential, cookie, full note hoặc full invalid reason.
 - Route mới có Form Request và authorization test.
-- Không được tạo public route P8 trước khi DG-001 và DG-006 cùng được phê duyệt; sau khi mở gate, route phải tuân đúng access contract, chống enumeration, idempotency và output allowlist đã chốt.
+- Public route phải tuân DG-001/DG-006: lookup chỉ nhận `student_code`, không có xác minh bổ sung hoặc public detail/history route; submission dùng idempotency token và output đúng allowlist.
 - GitHub Actions trên PR vào `develop`/`main` phải chạy lint, static analysis, unit, feature, MariaDB integration và `migrate:fresh` bằng PHP 8.4.
 - Chỉ cấu hình Ruleset sau khi workflow đã có một run xanh; required status checks phải dùng đúng check names ghi nhận từ run đó.
 - CI không tải, cache hoặc artifact private import/dữ liệu 8.145 Sinh viên.
@@ -343,13 +352,13 @@ Exit criteria P9: CI required checks xanh trên `develop`/`main`; private migrat
 
 | Nhóm requirement | Phase chính | Verification |
 |---|---|---|
-| FR-001 đến FR-009, SEC-006 | P8 | Blocked by DG-001/DG-006; access contract và output allowlist; AC-FR-001 đến AC-FR-004 |
+| FR-001 đến FR-009, BR-013, SEC-006 | P8 | DG-001/DG-006 approved; lookup `student_code`-only; idempotency tests; AC-FR-001 đến AC-FR-004 |
 | FR-010, FR-011, SEC-001 đến SEC-005 | P3-07, P4 | Auth/role/header feature tests, AC-FR-005, AC-SEC-001 |
 | FR-012 đến FR-022, BR-003 đến BR-009 | P6 | State matrix, Staff/Secretary React/Inertia UI, transaction/concurrency tests |
 | FR-023 đến FR-026, BR-011 | P5 | Admin React/Inertia UI và CRUD/activation/deletion tests |
 | FR-027, FR-028, BR-012 | P7 | Seven-status và UTC boundary tests |
 | BR-010 | P8-02, P8-04, P8-05 | Pure generator, Service collision retry, unique/immutable/redirect tests |
-| DR-001 đến DR-007 | P0-03, P2 | Sanitized metadata baseline, migrations và MariaDB integration tests |
+| DR-001 đến DR-008 | P0-03, P2 | Sanitized metadata baseline, domain/support migrations và MariaDB integration tests |
 | Runtime/CI/operations | P0-01, P1-02, P1-06, P1-07, P3-08 | PHP 8.4, strict UTC DB session, required CI checks và health tests |
 | NFR-001 đến NFR-007 | P9-04 | Chờ DG-005 |
 | UI-001 đến UI-003 | P1-08, P3-04, P4–P7 | React/Inertia internal pages, Blade public/error pages, frontend build/tests và server-side authorization tests |
@@ -358,7 +367,8 @@ Exit criteria P9: CI required checks xanh trên `develop`/`main`; private migrat
 
 | Rủi ro | Tín hiệu sớm | Kiểm soát |
 |---|---|---|
-| Public access/response vượt phạm vi được duyệt | Expose route trước gate, thiếu chống enumeration, có public detail/history route hoặc trả thêm trường ngoài FR-009 | Khóa toàn bộ P8 bằng DG-001/DG-006; allowlist response và route/feature tests theo quyết định |
+| Public response/idempotency sai contract | Yêu cầu thêm xác minh, có public detail/history route, trả thêm trường hoặc retry tạo hồ sơ thứ hai | Lookup `student_code`-only; allowlist response; token consume nguyên tử và concurrency tests |
+| Session/idempotency phụ thuộc một process | Dùng file, memory cache hoặc Redis ngoài phạm vi MVP | MariaDB database session; bảng idempotency riêng với transaction, row lock và unique constraint; integration test request đồng thời |
 | Migration khác baseline | Metadata/index/constraint name lệch | P0 schema-only/sanitized baseline, P2 metadata comparison, MariaDB integration tests |
 | Dữ liệu thật lọt vào Git/CI | Có row/mã Sinh viên thật trong fixture/artifact | External private path, ignore/scan gate, fake factories và sanitized baseline |
 | Bản sao rehearsal tồn tại quá hạn | Không có owner/deletion evidence sau P9-03 | Private isolated environment, retention deadline, owner và verified deletion record |
@@ -391,7 +401,7 @@ Một task Done khi:
 
 1. P0-01 → P0-04 để pin PHP 8.4, tạo sanitized baseline và khóa private-data policy.
 2. Chỉ sau khi P0 exit đạt: P1-01 → P1-08 → P1-04 → P1-06 → P1-07; P1-06 đồng thời chờ P1-05.
-3. P2-01 → P2-07 và P3-01 → P3-08 để khóa schema, persistence, security headers và health checks.
+3. P2-01 → P2-08 và P3-01 → P3-08 để khóa schema, persistence, database session/idempotency, security headers và health checks.
 4. P4, P5, P6, P7 theo dependency; P6-01 và P6-02 chạy song song.
-5. Giữ toàn bộ P8 blocked cho đến khi DG-001 và DG-006 cùng được phê duyệt.
-6. P9 theo phạm vi release đã được phê duyệt.
+5. Triển khai P8 theo dependency với DG-001/DG-006 đã completed.
+6. Chốt DG-005, sau đó thực hiện P9 theo phạm vi release đã được phê duyệt.

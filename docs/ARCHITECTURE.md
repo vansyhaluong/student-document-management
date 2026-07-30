@@ -1,6 +1,6 @@
 # ARCHITECTURE — Hệ thống quản lý tiếp nhận hồ sơ sinh viên
 
-> Trạng thái: Approved for Conditional Implementation — P0–P7; P8 blocked by DG-001/DG-006
+> Trạng thái: Approved for Conditional Implementation — P0–P8; production gates pending
 > Ngày cập nhật: 2026-07-30
 > Nguồn yêu cầu: `REQUIREMENTS.md`
 > Baseline hiện tại: `student_document_management.sql` (private local input, không commit; CI dùng sanitized schema-only baseline)
@@ -34,8 +34,9 @@ Khi sinh viên nộp hồ sơ, hệ thống chỉ kiểm tra `student_code` tồ
 | ADR-007 | Service sở hữu transaction nghiệp vụ | Bắt buộc |
 | ADR-008 | Lưu UTC, hiển thị `Asia/Ho_Chi_Minh` | Đã chốt |
 | ADR-009 | MariaDB 10.11 cho development, test/CI và production target; baseline MariaDB 10.4 chỉ là nguồn import | Đã chốt — 2026-07-30 |
-| ADR-010 | Một instance ứng dụng cho MVP | Tạm thời |
+| ADR-010 | Một application instance cho MVP; thiết kế không được ngăn cản nâng cấp nhiều instance sau này | Đã chốt — 2026-07-30 |
 | ADR-011 | React nằm cùng Laravel application, dùng session/CSRF và web routes; không tách SPA/API repository trong MVP | Đã chốt |
+| ADR-012 | Session dùng `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120`, không remember-me/Redis; Public Submission idempotency dùng bảng MariaDB riêng, transaction và unique constraint | Đã chốt — 2026-07-30 |
 
 ## 3. Kiến trúc tổng thể
 
@@ -252,17 +253,17 @@ Các cột thời gian không theo convention `created_at`/`updated_at` phải �
 |---|---|---|
 | Student Directory | Kiểm tra `student_code`, quản trị/import danh sách sinh viên | Ready for planning |
 | Document Catalog | Quản lý loại hồ sơ | Ready for planning |
-| Public Submission | Sinh viên nộp hồ sơ theo contract được DG-001/DG-006 phê duyệt | Blocked by DG-001/DG-006 |
-| Public Lookup | Tra cứu danh sách hồ sơ theo contract và kiểm soát chống enumeration được DG-001 phê duyệt | Blocked by DG-001/DG-006 |
+| Public Submission | Sinh viên nộp hồ sơ bằng `student_code`, loại hồ sơ và idempotency token | Ready for planning |
+| Public Lookup | Tra cứu toàn bộ danh sách hồ sơ chỉ bằng `student_code` | Ready for planning |
 | Document Reception | Staff hoặc Thư ký xác nhận tiếp nhận qua shared use case | Ready for planning |
 | Document Processing | Thư ký kiểm tra thủ công và chuyển trạng thái | Ready for planning |
-| Identity & Access | Đăng nhập, đăng xuất, session và phân quyền | Ready for planning; production policy pending |
+| Identity & Access | Đăng nhập, đăng xuất, session và phân quyền | Ready for planning |
 | Administration | Quản lý tài khoản và cấu hình được cho phép | Ready for planning |
 | Reporting | Tổng hợp số liệu hồ sơ | Ready for planning; NFR pending |
 
 Các module dùng chung Model khi cùng một database, nhưng tách Controller, Form Request và Service theo use case. Chỉ tách package/domain độc lập khi quy mô thực tế đòi hỏi.
 
-Cơ chế truy cập public cho MVP chưa được chốt. DG-001 phải quyết định contract input, xác minh và biện pháp chống enumeration; SEC-006 chỉ giới hạn output ở các trường FR-002/FR-009 và không phê duyệt `student_code`-only. DG-006 phải quyết định idempotency cho Public Submission. Không triển khai hoặc expose bất kỳ route P8 nào trước khi cả DG-001 và DG-006 được phê duyệt.
+DG-001 đã được chốt: `student_code` là input duy nhất của Public Lookup. Không yêu cầu `document_code`, đăng nhập, OTP, CAPTCHA hoặc yếu tố xác minh thứ hai. Kết quả trả toàn bộ danh sách hồ sơ thuộc mã sinh viên với đúng các trường FR-002/FR-009; không có route/page public xem chi tiết riêng một hồ sơ hoặc xem lịch sử. DG-006 cũng đã được chốt theo cơ chế idempotency tại mục 6.2; P8 đủ điều kiện planning theo dependency.
 
 ### 6.1 Sinh mã hồ sơ
 
@@ -278,6 +279,28 @@ Quy tắc bắt buộc:
 - Chỉ `StudentDocumentService` bắt `QueryException` xác định đúng constraint trên để yêu cầu candidate mới và retry, tối đa 5 lần.
 - Service phải ném lại mọi lỗi database khác; hết 5 collision thì ném `DocumentCodeGenerationException`.
 - Repository không cung cấp method sửa `document_code`; unique constraint và trigger database là lớp bảo vệ cuối cho tính duy nhất/bất biến.
+
+### 6.2 Idempotency của Public Submission
+
+- GET form tạo token ngẫu nhiên an toàn, gắn với session, TTL 10 phút, rồi lưu một bản ghi trong `public_submission_idempotency`.
+- Bảng `public_submission_idempotency` dùng schema tối thiểu sau; `payload_hash` và `student_document_id` để `NULL` cho đến lần POST hợp lệ đầu tiên:
+
+| Cột | Kiểu/constraint |
+|---|---|
+| `id` | `BIGINT UNSIGNED`, primary key |
+| `token` | `CHAR(64)`, `NOT NULL`, unique |
+| `session_id` | `VARCHAR(255)`, `NOT NULL` |
+| `payload_hash` | `CHAR(64)`, nullable |
+| `student_document_id` | `BIGINT UNSIGNED`, nullable, foreign key đến `student_documents.id` |
+| `expires_at` | `DATETIME`, `NOT NULL`, indexed |
+
+- Token là 32 byte ngẫu nhiên an toàn được mã hóa hex; `payload_hash` là SHA-256 của payload nghiệp vụ đã canonicalize. Không đưa CSRF token hoặc idempotency token vào payload hash.
+- POST mở transaction, khóa bản ghi token bằng `SELECT ... FOR UPDATE`/`lockForUpdate()`, kiểm tra session và hạn dùng, rồi tính/đối chiếu payload hash. Lần gửi hợp lệ đầu tiên tạo hồ sơ và cập nhật tham chiếu hồ sơ trên bản ghi idempotency trong cùng transaction.
+- Retry cùng token và payload trả lại cùng hồ sơ đã ánh xạ; không gọi lại create use case và không insert hồ sơ mới.
+- Cùng token nhưng payload khác, token hết hạn hoặc token không tồn tại bị từ chối bằng lỗi validation/business rule; không tạo hồ sơ.
+- Transaction, row lock và unique constraint phải bảo đảm hai request đồng thời không cùng vượt qua lần xử lý đầu tiên. Không dùng memory, file cache hoặc dữ liệu session làm nguồn duy nhất của idempotency.
+- Tải form mới tạo token mới. Token mới không bị coi là hồ sơ trùng kỹ thuật; business rule BR-003 vẫn cho phép chủ động tạo hồ sơ cùng loại.
+- Token không thay thế CSRF token. CSRF bảo vệ request, idempotency bảo vệ retry/double-submit.
 
 ## 7. Workflow trạng thái
 
@@ -425,11 +448,17 @@ Yêu cầu:
 ### 9.1 Authentication
 
 - Dùng session guard của Laravel cho giao diện nội bộ.
+- Cấu hình session là `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120`; phiên hết khi đóng trình duyệt hoặc sau 120 phút không hoạt động, tùy điều kiện nào đến trước. MVP không dùng Redis và không triển khai remember-me.
 - `User` kế thừa `Illuminate\Foundation\Auth\User`.
-- Xác thực qua `Hash`, không tự so sánh hash.
+- Mật khẩu có tối thiểu 8 ký tự, dùng Argon2id qua Laravel `Hash`; không tự so sánh hash.
+- Không yêu cầu composition rule bắt buộc. Khi cơ chế kiểm tra khả dụng, validation phải từ chối mật khẩu phổ biến hoặc đã bị lộ.
 - Chỉ `is_active = true` được đăng nhập.
+- Đăng nhập sai không hard-lock tài khoản và không được tự thay đổi `users.is_active`.
+- Mọi trường hợp đăng nhập thất bại dùng cùng một thông báo lỗi chung, không phân biệt username không tồn tại, mật khẩu sai hoặc tài khoản inactive.
 - Đăng nhập thành công phải regenerate session ID.
 - Đăng xuất phải invalidate session và regenerate CSRF token.
+- Admin reset mật khẩu thành mật khẩu tạm; người dùng không bắt buộc đổi mật khẩu ở lần đăng nhập tiếp theo.
+- Admin đầu tiên được tạo bằng Artisan command tương tác. Command không có credential mặc định, không nhận mật khẩu qua argument và không ghi mật khẩu vào log.
 - Web routes dùng CSRF protection mặc định.
 
 ### 9.2 Authorization
@@ -583,7 +612,7 @@ Không trả envelope khi dùng `204 No Content`.
 
 ## 13. Route và request lifecycle
 
-Route công khai dưới đây chỉ là candidate surface và bị khóa bởi DG-001/DG-006; không được đăng ký trước khi hai gate được phê duyệt:
+Route công khai:
 
 ```text
 GET  /                         → trang nộp/tra cứu
@@ -593,7 +622,7 @@ GET  /documents/lookup         → form tra cứu
 POST /documents/lookup         → kết quả tra cứu
 ```
 
-Contract input của Public Lookup phải theo DG-001 và output chỉ gồm danh sách theo FR-002/FR-009. Không tạo route dạng `/documents/{document}` hoặc `/documents/{documentCode}` cho public detail. Cách sử dụng `document_code`, nếu có, chỉ được quyết định tại DG-001.
+`POST /documents/lookup` chỉ nhận `student_code` và trả danh sách theo FR-002/FR-009. Không tạo route dạng `/documents/{document}` hoặc `/documents/{documentCode}` cho public detail. `document_code` được hiển thị trong danh sách nhưng không phải input tra cứu.
 
 Route nội bộ:
 
@@ -610,6 +639,7 @@ PATCH  /secretary/documents/{document}/status
 GET|POST|PUT|PATCH /admin/users
 PATCH  /admin/users/{user}/activate
 PATCH  /admin/users/{user}/deactivate
+PATCH  /admin/users/{user}/reset-password
 GET|POST|PUT|PATCH /admin/document-types
 PATCH  /admin/document-types/{documentType}/activate
 PATCH  /admin/document-types/{documentType}/deactivate
@@ -621,7 +651,7 @@ GET    /admin/reports
 
 Shared reception route nằm trong authenticated internal group, không nằm trong role-only Staff group. Policy của receive action chấp nhận đúng hai role Staff và Thư ký; cả hai UI dùng cùng Form Request, Controller và Service use case.
 
-Endpoint công khai dùng HTTPS, validation và các kiểm soát được DG-001 phê duyệt. Không được suy diễn quyền xem danh sách chỉ từ SEC-006; DG-001 là nguồn quyết định access contract và chống enumeration.
+Endpoint công khai dùng HTTPS, validation và rate limit chung cho khả dụng. Quyền xem danh sách được xác định duy nhất bằng `student_code` theo DG-001; không có bước xác minh danh tính bổ sung.
 
 Thứ tự xử lý:
 
@@ -646,6 +676,7 @@ Thứ tự xử lý:
 - User và document type không có hard delete trong application; dùng `is_active` để khóa/ngừng sử dụng. Student chỉ được hard delete khi chưa liên kết `student_documents`.
 - Foreign key `RESTRICT` là lớp bảo vệ cuối cho thao tác xóa dữ liệu còn liên kết.
 - Migration thay constraint phải kiểm tra dữ liệu hiện có trước khi áp dụng.
+- Ngoài năm bảng nghiệp vụ của baseline, application tạo bảng `sessions` cho Laravel database session driver và bảng `public_submission_idempotency` theo mục 6.2. Hai bảng hỗ trợ này dùng migration riêng và không bị coi là bảng nguồn import của baseline MariaDB 10.4.
 
 Eloquent dùng cho CRUD và relationship. Query Builder dùng trong Repository báo cáo phức tạp; raw SQL phải parameterized và có test.
 
@@ -676,6 +707,9 @@ Eloquent dùng cho CRUD và relationship. Query Builder dùng trong Repository b
 
 - Route công khai/nội bộ và Form Request validation.
 - Authentication, inactive user, session và Policy/role.
+- Argon2id, độ dài mật khẩu tối thiểu 8, không composition rule bắt buộc, chặn mật khẩu phổ biến/đã lộ khi khả dụng, và reset bằng mật khẩu tạm không ép đổi lần đăng nhập kế tiếp.
+- Login failure dùng thông báo chung, không hard-lock hoặc tự đổi `users.is_active`.
+- Artisan bootstrap Admin chạy tương tác, không có credential mặc định và không nhận password argument.
 - Inertia page props, validation/flash/errors; Blade public/error behavior và JSON envelope/status.
 - CSRF và rate limit.
 
@@ -695,6 +729,8 @@ Eloquent dùng cho CRUD và relationship. Query Builder dùng trong Repository b
 - Hồ sơ mới từ Public Submission chưa có history; receive bởi Staff/Thư ký tạo history đầu tiên.
 - Lỗi giữa transaction phải rollback cả hai thao tác.
 - `lockForUpdate()` ngăn lost update.
+- Database session tồn tại qua request, hết khi đóng trình duyệt hoặc sau 120 phút không hoạt động, không phụ thuộc Redis; remember-me không tồn tại trong MVP.
+- Unique constraint và transaction/row lock trên `public_submission_idempotency` bảo đảm hai request đồng thời cùng token/payload chỉ tạo một hồ sơ; payload khác hoặc token hết hạn không tạo hồ sơ.
 - Foreign key, check, unique và index hoạt động đúng.
 - Báo cáo dùng biên UTC nửa mở và trả đủ bảy trạng thái tại các mốc đầu/cuối ngày, tháng theo `Asia/Ho_Chi_Minh`.
 
@@ -706,19 +742,19 @@ Database test phải riêng biệt và reset có kiểm soát; không reset migr
 flowchart LR
     Client[Browser] --> Proxy[Nginx / Apache]
     Proxy --> PHP[PHP-FPM + Laravel]
-    PHP --> DB[(MariaDB)]
-    PHP --> Session[(Session store)]
+    PHP --> DB[(MariaDB: domain data + sessions + idempotency)]
     Build[Vite build: React assets] --> Proxy
 ```
 
-- Một Laravel application và một MariaDB database cho MVP.
+- Một Laravel application instance và một MariaDB 10.11 database cho MVP.
 - HTTPS bắt buộc; secret môi trường không commit.
 - Production dùng `APP_ENV=production`, `APP_DEBUG=false`.
 - Cache config, route và view trong quy trình deploy.
 - Chạy `npm ci`, type-check, frontend tests và `npm run build`; chỉ deploy asset Vite đã build cùng đúng Laravel release.
 - Migration là bước deploy riêng, có backup và rollback plan.
 - Migration rehearsal trên bản sao dữ liệu thật chỉ được chạy trong môi trường private có kiểm soát truy cập; không đưa dữ liệu, log chứa dữ liệu, cache hoặc artifact lên CI. Mỗi lần diễn tập phải có owner, thời hạn lưu giữ và bằng chứng xóa bản sao sau khi hoàn tất.
-- Database session thuận lợi khi nâng lên nhiều instance; file session chỉ phù hợp một instance.
+- Session dùng MariaDB database driver với `SESSION_EXPIRE_ON_CLOSE=true` và `SESSION_LIFETIME=120`; idempotency dùng bảng `public_submission_idempotency`. MVP không dùng Redis, memory hoặc file cache làm nguồn lưu trữ cho hai cơ chế này và không cung cấp remember-me.
+- Thiết kế không được phụ thuộc vào process-local state, để có thể nâng cấp lên nhiều application instance dùng chung MariaDB sau MVP.
 - Chưa cần queue/scheduler; chỉ thêm khi có tác vụ nền thực tế.
 - Có health endpoint tách tình trạng application và database.
 - Security headers được áp qua middleware và có feature test; tối thiểu phải chốt CSP/frame policy, content-type protection, referrer policy và HSTS cho production HTTPS.
@@ -727,13 +763,7 @@ flowchart LR
 
 ## 17. Điểm cần chốt trước production
 
-Các điểm này không chặn việc tạo Laravel skeleton, migration và thiết kế giao diện:
-
-1. DG-001: access contract và chống enumeration cho Public Submission/Public Lookup.
-2. NFR: tải đồng thời, response time, availability, RPO/RTO và retention.
-3. Chính sách mật khẩu/session, khóa đăng nhập và reset mật khẩu.
-4. Cách tạo Admin đầu tiên và quản lý secret ban đầu.
-5. DG-006: idempotency cho Public Submission.
+DG-005 về các chỉ tiêu NFR (tải đồng thời, response time, availability, RPO/RTO, retention, tương thích và khả năng tiếp cận) vẫn `Pending`. Gate này không chặn triển khai chức năng P0–P8 nhưng bắt buộc phải được chốt trước P9/production sign-off.
 
 ## 18. Điều kiện sẵn sàng triển khai
 
@@ -745,6 +775,8 @@ Có thể tạo Laravel skeleton khi toàn bộ P0-01 đến P0-04 đã đạt:
 - Giữ React + TypeScript/Inertia cho UI nội bộ và Blade cho public/error; không tách SPA/API riêng trong MVP.
 - Tạo Repository interface và Service boundary đúng tài liệu.
 - Migration tái hiện đúng baseline database đã chốt.
-- P8 tiếp tục bị khóa cho đến khi DG-001 và DG-006 cùng được phê duyệt; SEC-006 chỉ giới hạn output và không mở khóa P8.
+- P8 áp dụng DG-001 và DG-006 đã chốt: lookup chỉ dùng `student_code`; submission dùng idempotency token session-bound TTL 10 phút; không có public detail/history route.
+- DG-002 và DG-003 đã chốt: Argon2id, mật khẩu tối thiểu 8 ký tự, không composition rule bắt buộc, chặn mật khẩu phổ biến/đã lộ khi khả dụng; database session hết khi đóng trình duyệt hoặc sau 120 phút idle; không Redis/remember-me/hard-lock/forced password change; login failure dùng thông báo chung; bootstrap Admin bằng Artisan command tương tác không nhận password argument.
+- MVP chạy một application instance; session và idempotency cùng dựa trên MariaDB để không khóa đường nâng cấp nhiều instance.
 
-Các NFR và open question ở mục 17 phải được theo dõi bằng decision log, không tự suy diễn thành business rule.
+DG-005 ở mục 17 phải được theo dõi bằng decision log và chốt trước P9/production; không tự suy diễn các ngưỡng NFR thành business rule.
