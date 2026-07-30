@@ -1,0 +1,93 @@
+name: CI
+
+# Chạy trên mỗi Pull Request và mỗi lần push vào nhánh chính
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  build-test:
+    name: Install → Format check → Test
+    runs-on: ubuntu-latest
+
+    # Toàn bộ lệnh Laravel chạy bên trong src/ (nơi Laravel thật sự được tạo — xem DOCKER_SETUP.md)
+    defaults:
+      run:
+        working-directory: src
+
+    # Khởi tạo MySQL tạm thời để chạy test (khớp với ADR-001: PHP + MySQL)
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # 0. Lấy code từ nhánh của PR
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Cài PHP đúng phiên bản dự án dùng (Laravel 11 yêu cầu PHP >= 8.2; Dockerfile dùng PHP 8.3)
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, pdo_mysql, exif, pcntl, gd, zip
+          coverage: none
+
+      # 2. Cache Composer để các lần chạy CI sau nhanh hơn (đường dẫn đổi sang src/vendor)
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: src/vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      # 3. CÀI ĐẶT PHỤ THUỘC (chạy trong src/ nhờ working-directory ở trên)
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # 4. Chuẩn bị file môi trường + app key cho Laravel
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # 5. KIỂM TRA ĐỊNH DẠNG MÃ (Laravel Pint)
+      #    --test: chỉ kiểm tra, KHÔNG tự sửa file — nếu sai định dạng, bước này FAIL
+      - name: Check code formatting (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      # 6. Migrate database test (dùng MySQL service ở trên)
+      - name: Run database migrations
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD:
+        run: php artisan migrate --force
+
+      # 7. CHẠY TEST TỰ ĐỘNG
+      - name: Run tests
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD:
+        run: php artisan test
