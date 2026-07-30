@@ -99,7 +99,7 @@ P4–P8 có thể được lập trình theo dependency sau khi P0 đạt.
 
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
-| P0-01 | Kiểm tra Laravel 13.x, PHP 8.4 cố định, Composer, Node.js/npm được pin và các extension PDO MySQL, intl, mbstring, openssl | Không | Ready | Development và CI cùng báo đúng PHP 8.4, Node.js/npm đã pin; runtime PHP policy cho phép 8.3–8.5 |
+| P0-01 | Chốt runtime baseline Laravel 13.x, PHP 8.4, Composer, Node.js/npm và kiểm tra extension bắt buộc | Không | **Completed — 2026-07-30** | Herd PHP 8.4.23 và extension đạt; Composer 2.10.2 qua User PATH; baseline Node 24.16.0/npm 11.13.0 được ghi tại `.nvmrc` và `docs/evidence/P0-01.md`; chưa yêu cầu `package.json` trước scaffold |
 | P0-02 | Chuẩn bị MariaDB 10.11 test riêng và xác minh capability UTC/strict mode | P0-01 | Ready | Development, test/CI và production target thống nhất MariaDB 10.11; server hỗ trợ session `time_zone = '+00:00'` và SQL mode `STRICT_TRANS_TABLES`; chưa kết luận Laravel connection đã áp dụng |
 | P0-03 | Tạo schema-only/sanitized baseline từ private SQL và import vào MariaDB test sạch | P0-02 | Ready | Không chứa row Sinh viên thật; metadata đủ table/index/FK/CHECK/trigger |
 | P0-04 | Thiết lập policy private import ngoài Git/CI | P0-03 | Ready | Private path được ignore/kiểm tra chống commit; CI chỉ dùng sanitized baseline và fake data |
@@ -112,12 +112,12 @@ Exit criteria P0 cho phần nội bộ: P0-01 đến P0-04 đều đạt, saniti
 
 | ID | Task | Dependency | Trạng thái | Output/verification |
 |---|---|---|---|---|
-| P1-01 | Tạo Laravel 13.x application tại repository root, pin PHP 8.4 và Node.js/npm cho development | P0-01, P0-02, P0-03, P0-04 | Blocked until P0 exit | App boot thành công; Vite chạy bằng đúng runtime đã pin |
+| P1-01 | Tạo Laravel 13.x application tại repository root và áp dụng runtime baseline P0-01 vào project metadata | P0-01, P0-02, P0-03, P0-04 | Blocked until P0 exit | `package.json` dùng `engines` cho Node 24.16.0/npm 11.13.0 và `packageManager` là npm 11.13.0; app boot và Vite chạy đúng baseline, không lựa chọn lại phiên bản |
 | P1-02 | Cấu hình `.env.example`, MariaDB connection UTC/strict mode, locale, timezone và session | P1-01, P0-02 | Ready | DB có UTC/`STRICT_TRANS_TABLES`; `.env.example` đặt `SESSION_DRIVER=database`, `SESSION_EXPIRE_ON_CLOSE=true`, `SESSION_LIFETIME=120` |
 | P1-03 | Tạo cấu trúc namespace theo Architecture | P1-01 | Ready | Có Enums, Exceptions, Requests, Services, Repositories, Policies, Support |
 | P1-04 | Cấu hình code style/static analysis cho PHP và TypeScript/React | P1-08 | Ready after P1-08 | PHP format/static analysis và frontend format/lint/type-check chạy thành công |
 | P1-05 | Tạo test bootstrap dùng MariaDB test và guard chống nhầm database | P1-02 | Ready | Test từ chối chạy nếu database không mang tên/phân loại test |
-| P1-06 | Thiết lập và chạy xanh GitHub Actions workflow cho PR vào `develop`/`main` | P1-04, P1-05 | Ready | PHP 8.4 và Node.js/npm đã pin; lint, type-check, frontend test/build, static analysis, unit, feature, MariaDB integration và `migrate:fresh` chạy xanh; ghi nhận chính xác check names từ workflow run |
+| P1-06 | Thiết lập và chạy xanh GitHub Actions workflow cho PR vào `develop`/`main` | P1-04, P1-05 | Ready | CI dùng đúng PHP 8.4, Node 24.16.0 và npm 11.13.0; lint, type-check, frontend test/build, static analysis, unit, feature, MariaDB integration và `migrate:fresh` chạy xanh; ghi nhận chính xác check names từ workflow run |
 | P1-07 | Cấu hình GitHub Ruleset cho `main` và `develop` | P1-06 | Ready sau khi workflow xanh | Chỉ thêm đúng check names đã xuất hiện trong run xanh; required status checks áp cho PR vào cả hai branch |
 | P1-08 | Cài React + TypeScript, Inertia Laravel/React adapter và cấu hình Vite | P1-01 | Ready after P1-01 | `app.tsx`, `app.blade.php`, Inertia middleware và sample page render được; production build không lỗi |
 
