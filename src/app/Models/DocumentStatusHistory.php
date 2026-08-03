@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentStatusHistory extends Model
 {
+    protected $table = 'document_status_history';
+
     public $timestamps = false;
 
     protected $fillable = [

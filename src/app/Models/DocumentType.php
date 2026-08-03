@@ -28,4 +28,9 @@ class DocumentType extends Model
     {
         return $query->where('is_active', true)->orderBy('name');
     }
+
+    public function documents()
+    {
+        return $this->hasMany(StudentDocument::class, 'document_type_id');
+    }
 }

@@ -1,0 +1,116 @@
+/* =====================================================================
+   FILE: assets/css/login.css
+   MỤC ĐÍCH: Style riêng cho trang đăng nhập (pages/login.php) - khung
+             chia 2 cột: bên trái minh họa, bên phải form đăng nhập.
+   ===================================================================== */
+
+/* ---------- Khối bọc ngoài, canh giữa khung đăng nhập theo màn hình ---------- */
+.login-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px;
+}
+
+/* ---------- Khung đăng nhập chia 2 cột ---------- */
+.login-box {
+  display: flex;
+  max-width: 1100px;
+  width: 100%;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;               /* Cắt góc bo tròn cho 2 cột con bên trong */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06); /* Đổ bóng nhẹ cho khung nổi bật */
+}
+
+/* ---------- Cột trái: minh họa + giới thiệu ngắn ---------- */
+.login-gioi-thieu {
+  flex: 1;
+  background: linear-gradient(180deg, #dfe9ff 0%, #eef3ff 100%); /* Nền xanh nhạt chuyển sắc */
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.login-gioi-thieu h2 {
+  color: var(--xanh-dam);
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.login-gioi-thieu p {
+  color: var(--chu-phu);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+.login-gioi-thieu .icon-khoa {
+  font-size: 90px;   /* Icon ổ khóa lớn làm minh họa (dùng emoji để tối giản, không cần ảnh) */
+}
+
+/* ---------- Cột phải: form đăng nhập ---------- */
+.login-form {
+  flex: 1;
+  padding: 50px 50px;
+}
+.login-form h1 {
+  text-align: center;
+  color: var(--xanh-dam);
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+.login-form .gach-chan {
+  width: 50px; height: 3px; background: var(--xanh-chinh);
+  margin: 10px auto 24px; border-radius: 2px; /* Gạch chân ngắn dưới tiêu đề như hình mẫu */
+}
+
+/* Dòng "Ghi nhớ đăng nhập" và "Quên mật khẩu?" nằm cùng 1 hàng */
+.login-hang-tuy-chon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+.login-hang-tuy-chon a { color: var(--xanh-chinh); text-decoration: none; }
+
+/* Nút đăng nhập chiếm hết chiều rộng form */
+.login-form .btn-primary { width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+
+/* Đường kẻ chữ "Hoặc" ở giữa */
+.login-hoac {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--chu-phu); font-size: 13px;
+  margin: 20px 0;
+}
+.login-hoac::before, .login-hoac::after {
+  content: ''; flex: 1; height: 1px; background: var(--vien); /* 2 đường kẻ 2 bên chữ Hoặc */
+}
+
+/* Nút "Quay lại trang chủ" chiếm hết chiều rộng form */
+.login-form .btn-outline { width: 100%; justify-content: center; padding: 13px; }
+
+/* Khung ghi chú cuối form */
+.login-ghi-chu {
+  display: flex; gap: 10px;
+  background: #eef3ff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--chu-chinh);
+}
+
+/* Thông báo lỗi đăng nhập (sai tài khoản/mật khẩu) */
+.login-loi {
+  background: #fee2e2;
+  color: var(--do);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+/* Responsive: dưới 800px thì xếp 2 cột chồng lên nhau theo chiều dọc */
+@media (max-width: 800px) {
+  .login-box { flex-direction: column; }
+}

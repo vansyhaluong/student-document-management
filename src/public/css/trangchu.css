@@ -1,0 +1,90 @@
+/* =====================================================================
+   FILE: assets/css/trangchu.css
+   MỤC ĐÍCH: Style riêng cho trang chủ (pages/index.php) - phần hero,
+             2 thẻ chức năng (Nộp hồ sơ / Tra cứu) và thanh lưu ý.
+   ===================================================================== */
+
+/* ---------- Phần giới thiệu (hero) ở đầu trang ---------- */
+.hero {
+  text-align: center;     /* Căn giữa tiêu đề và mô tả */
+  padding: 50px 20px 30px; /* Khoảng đệm trên dưới */
+}
+.hero h1 {
+  color: var(--xanh-dam);  /* Tiêu đề màu xanh navy đậm */
+  font-size: 30px;         /* Cỡ chữ tiêu đề lớn */
+  margin-bottom: 14px;     /* Khoảng cách với dòng mô tả bên dưới */
+}
+.hero p {
+  color: var(--chu-phu);   /* Màu chữ mô tả xám nhạt */
+  font-size: 15px;
+  max-width: 700px;        /* Giới hạn độ rộng để dễ đọc */
+  margin: 0 auto;          /* Căn giữa khối mô tả theo chiều ngang */
+  line-height: 1.6;        /* Giãn dòng cho dễ đọc */
+}
+
+/* ---------- Khối chứa 2 thẻ chức năng, có chữ "HOẶC" ở giữa ---------- */
+.khoi-chuc-nang {
+  display: flex;                /* Xếp 2 thẻ theo hàng ngang */
+  justify-content: center;      /* Căn giữa 2 thẻ */
+  align-items: stretch;         /* 2 thẻ cao bằng nhau */
+  gap: 40px;                    /* Khoảng cách giữa 2 thẻ */
+  max-width: 1300px;
+  margin: 0 auto 40px;          /* Căn giữa khối theo chiều ngang */
+  padding: 0 40px;
+  position: relative;           /* Làm mốc để định vị chữ "HOẶC" ở giữa */
+}
+.the-chuc-nang {
+  flex: 1;                       /* 2 thẻ chia đều chiều rộng còn lại */
+  max-width: 560px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px;
+  border: 1px solid var(--vien);
+}
+.the-chuc-nang h2 { font-size: 22px; margin: 16px 0 8px; } /* Tiêu đề thẻ (NỘP HỒ SƠ / TRA CỨU HỒ SƠ) */
+.the-chuc-nang.nop-ho-so h2 { color: var(--xanh-chinh); }  /* Tiêu đề thẻ Nộp hồ sơ màu xanh dương */
+.the-chuc-nang.tra-cuu h2 { color: var(--xanh-la); }       /* Tiêu đề thẻ Tra cứu màu xanh lá */
+.the-chuc-nang > p.mo-ta { color: var(--chu-phu); margin-bottom: 18px; font-size: 14px; } /* Mô tả ngắn của thẻ */
+.the-chuc-nang ul { list-style: none; margin-bottom: 26px; } /* Bỏ dấu chấm đầu dòng của danh sách */
+.the-chuc-nang ul li {
+  padding: 6px 0;      /* Khoảng cách giữa các dòng trong danh sách */
+  font-size: 14px;
+  color: var(--chu-chinh);
+}
+.the-chuc-nang ul li::before { content: '✔ '; color: var(--xanh-la); } /* Dấu tick xanh trước mỗi mục */
+.the-chuc-nang .btn { width: 100%; justify-content: center; padding: 14px; font-size: 15px; } /* Nút chiếm hết chiều rộng thẻ */
+
+/* Vòng tròn chữ "HOẶC" nằm giữa 2 thẻ (chỉ hiện trên màn hình rộng) */
+.chu-hoac {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px; height: 50px;
+  background: #fff;
+  border: 1px solid var(--vien);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--chu-phu);
+}
+
+/* ---------- Thanh "Lưu ý quan trọng" ở cuối nội dung ---------- */
+.thanh-luu-y {
+  max-width: 1300px;
+  margin: 0 auto 40px;
+  padding: 20px 40px;
+  background: #eef3ff;         /* Nền xanh nhạt */
+  border-radius: 14px;
+  display: flex;               /* Xếp icon + 3 mục theo hàng ngang */
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;             /* Tự xuống dòng trên màn hình nhỏ */
+}
+.thanh-luu-y .tieu-de {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; color: var(--xanh-dam); font-size: 14px;
+}
+.thanh-luu-y .muc {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--chu-chinh);
+  flex: 1; min-width: 220px;
+}

@@ -1,0 +1,81 @@
+/* =====================================================================
+   FILE: assets/css/sinhvien.css
+   MỤC ĐÍCH: Style dùng chung cho các trang phía Sinh viên: Nộp hồ sơ,
+             Tra cứu hồ sơ (khung nội dung, chỉ báo bước, thông báo...).
+   ===================================================================== */
+
+/* ---------- Khung bọc nội dung chính, canh giữa và giới hạn độ rộng ---------- */
+.khung-noi-dung {
+  max-width: 800px;      /* Giới hạn độ rộng để form không quá dàn trải */
+  margin: 40px auto;     /* Canh giữa theo chiều ngang, cách trên dưới 40px */
+  padding: 0 20px;
+}
+.khung-noi-dung.rong { max-width: 1100px; } /* Dùng cho trang có bảng danh sách rộng hơn */
+
+/* ---------- Tiêu đề trang (VD: "NỘP HỒ SƠ TRỰC TUYẾN") ---------- */
+.tieu-de-trang {
+  text-align: center;
+  color: var(--xanh-dam);
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+
+/* ---------- Chỉ báo các bước (1. Xác thực - 2. Điền thông tin - 3. Hoàn tất) ---------- */
+.chi-bao-buoc {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 30px;
+}
+.chi-bao-buoc .buoc {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--chu-phu); font-size: 13px; font-weight: 600;
+}
+.chi-bao-buoc .buoc .so {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #e5e7eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.chi-bao-buoc .buoc.dang-active { color: var(--xanh-chinh); }
+.chi-bao-buoc .buoc.dang-active .so { background: var(--xanh-chinh); }
+.chi-bao-buoc .buoc.da-xong .so { background: var(--xanh-la); }
+
+/* ---------- Khối thông tin sinh viên (readonly) đã xác thực ---------- */
+.thong-tin-sv {
+  display: flex; gap: 30px; flex-wrap: wrap;
+  background: var(--xanh-nhat);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.thong-tin-sv div span.nhan { display: block; font-size: 12px; color: var(--chu-phu); }
+.thong-tin-sv div span.gia-tri { font-size: 14px; font-weight: 700; color: var(--chu-chinh); }
+
+/* ---------- Hộp thông báo lỗi / thành công dùng chung ---------- */
+.thong-bao {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.thong-bao.loi { background: #fee2e2; color: var(--do); }
+.thong-bao.thanh-cong { background: #dcfce7; color: var(--xanh-la); }
+
+/* ---------- Trang thông báo gửi đơn thành công ---------- */
+.ket-qua-thanh-cong { text-align: center; padding: 30px 0; }
+.ket-qua-thanh-cong .icon { font-size: 60px; margin-bottom: 10px; }
+.ket-qua-thanh-cong .ma-don {
+  display: inline-block;
+  background: var(--xanh-nhat);
+  color: var(--xanh-chinh);
+  font-weight: 700; font-size: 18px;
+  padding: 10px 24px; border-radius: 8px;
+  margin: 14px 0 24px;
+}
+.ket-qua-thanh-cong .nhom-nut { display: flex; gap: 12px; justify-content: center; }
+
+/* ---------- Bảng bộ lọc tìm kiếm trên trang tra cứu ---------- */
+.hang-bo-loc { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.hang-bo-loc .form-control { max-width: 220px; }
+.hang-bo-loc select.form-control { max-width: 180px; }

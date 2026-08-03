@@ -1,0 +1,95 @@
+/* =====================================================================
+   FILE: assets/css/style.css
+   MỤC ĐÍCH: Định nghĩa màu sắc, biến dùng chung cho TOÀN BỘ giao diện
+             (cả trang Sinh viên lẫn trang Quản trị) để đồng bộ với hình mẫu.
+   CÁCH DÙNG: Nhúng vào mọi trang bằng thẻ:
+             <link rel="stylesheet" href="assets/css/style.css">
+   ===================================================================== */
+
+/* Khai báo biến màu dùng chung, lấy theo tông màu xanh dương trong hình mẫu */
+:root {
+  --xanh-dam: #0b1e42;        /* Màu nền sidebar (xanh navy đậm) */
+  --xanh-chinh: #1e4fd6;      /* Màu xanh dương chính (nút, liên kết, badge "Đã gửi") */
+  --xanh-nhat: #eef3ff;       /* Màu nền xanh nhạt cho các khối phụ */
+  --xanh-la: #16a34a;         /* Màu xanh lá (badge "Đã tiếp nhận", thành công) */
+  --cam: #f59e0b;             /* Màu cam (badge "Đang xử lý") */
+  --tim: #7c3aed;             /* Màu tím (badge "Đã chuyển hồ sơ") */
+  --do: #dc2626;              /* Màu đỏ (badge "Đã hủy", lỗi) */
+  --chu-chinh: #1f2937;       /* Màu chữ chính (đen nhạt) */
+  --chu-phu: #6b7280;         /* Màu chữ phụ (xám) */
+  --vien: #e5e7eb;            /* Màu viền/border mặc định */
+  --nen-trang: #ffffff;       /* Màu nền trắng của khối nội dung (card) */
+  --nen-xam: #f5f7fb;         /* Màu nền xám nhạt của toàn trang */
+}
+
+/* Reset mặc định của trình duyệt để đồng bộ khoảng cách giữa các phần tử */
+* {
+  margin: 0;              /* Bỏ margin mặc định */
+  padding: 0;              /* Bỏ padding mặc định */
+  box-sizing: border-box;  /* Tính cả border/padding vào width/height cho dễ căn chỉnh */
+}
+
+/* Font chữ và màu nền chung cho toàn bộ trang */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif; /* Font chữ dễ đọc, hỗ trợ tiếng Việt tốt */
+  background-color: var(--nen-xam);           /* Nền xám nhạt giống hình mẫu */
+  color: var(--chu-chinh);                    /* Màu chữ mặc định */
+}
+
+/* ---------- Nút bấm dùng chung ---------- */
+.btn {
+  display: inline-flex;      /* Cho phép căn icon + chữ trên cùng 1 hàng */
+  align-items: center;       /* Căn giữa icon và chữ theo chiều dọc */
+  gap: 6px;                  /* Khoảng cách giữa icon và chữ */
+  padding: 10px 18px;        /* Khoảng đệm bên trong nút */
+  border-radius: 8px;        /* Bo góc nút */
+  border: none;              /* Bỏ viền mặc định */
+  font-size: 14px;           /* Cỡ chữ trong nút */
+  font-weight: 600;          /* Chữ đậm vừa */
+  cursor: pointer;           /* Hiện con trỏ tay khi rê chuột */
+  text-decoration: none;     /* Bỏ gạch chân nếu nút là thẻ <a> */
+}
+.btn-primary { background: var(--xanh-chinh); color: #fff; } /* Nút xanh dương chính */
+.btn-success { background: var(--xanh-la); color: #fff; }    /* Nút xanh lá (VD: Nộp hồ sơ) */
+.btn-outline { background: #fff; color: var(--chu-chinh); border: 1px solid var(--vien); } /* Nút viền trắng */
+
+/* ---------- Nhãn trạng thái (badge) dùng chung cho các bảng đơn ---------- */
+.badge {
+  display: inline-block;     /* Hiển thị dạng khối nhỏ gọn theo nội dung */
+  padding: 4px 12px;         /* Khoảng đệm trong badge */
+  border-radius: 20px;       /* Bo tròn dạng viên thuốc (pill) */
+  font-size: 12px;           /* Cỡ chữ nhỏ cho badge */
+  font-weight: 600;          /* Chữ đậm vừa để dễ đọc */
+}
+.badge-blue   { background: #e0e9ff; color: var(--xanh-chinh); } /* Đã gửi */
+.badge-green  { background: #dcfce7; color: var(--xanh-la); }    /* Đã tiếp nhận */
+.badge-orange { background: #fef3c7; color: var(--cam); }        /* Đang xử lý */
+.badge-purple { background: #ede9fe; color: var(--tim); }        /* Đã chuyển hồ sơ */
+.badge-red    { background: #fee2e2; color: var(--do); }         /* Đã hủy */
+.badge-gray   { background: #f3f4f6; color: var(--chu-phu); }    /* Trạng thái không xác định */
+
+/* ---------- Khối card dùng chung (thẻ thống kê, khung nội dung...) ---------- */
+.card {
+  background: var(--nen-trang);  /* Nền trắng cho khối card */
+  border-radius: 12px;           /* Bo góc mềm mại */
+  border: 1px solid var(--vien); /* Viền nhạt bao quanh */
+  padding: 20px;                 /* Khoảng đệm bên trong card */
+}
+
+/* ---------- Bảng dữ liệu dùng chung ---------- */
+table { width: 100%; border-collapse: collapse; } /* Bảng chiếm full chiều rộng, gộp viền */
+th, td { padding: 12px 10px; text-align: left; font-size: 14px; } /* Khoảng đệm và căn trái cho ô */
+th { color: var(--chu-phu); font-weight: 600; border-bottom: 1px solid var(--vien); } /* Tiêu đề bảng màu xám */
+tbody tr { border-bottom: 1px solid var(--vien); } /* Đường kẻ ngăn cách giữa các dòng */
+
+/* ---------- Ô nhập liệu (input, select) dùng chung ---------- */
+.form-group { margin-bottom: 16px; }              /* Khoảng cách giữa các nhóm nhập liệu */
+.form-group label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; } /* Nhãn phía trên ô nhập */
+.form-control {
+  width: 100%;                 /* Ô nhập chiếm hết chiều rộng khối cha */
+  padding: 10px 14px;          /* Khoảng đệm bên trong ô nhập */
+  border: 1px solid var(--vien); /* Viền nhạt quanh ô nhập */
+  border-radius: 8px;          /* Bo góc ô nhập */
+  font-size: 14px;             /* Cỡ chữ trong ô nhập */
+}
+.form-control:focus { outline: none; border-color: var(--xanh-chinh); } /* Đổi màu viền khi đang nhập */
