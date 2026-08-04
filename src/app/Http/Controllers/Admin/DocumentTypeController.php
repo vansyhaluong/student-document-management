@@ -17,24 +17,24 @@ class DocumentTypeController extends Controller
         if ($keyword !== '') {
             $query->where(function ($q) use ($keyword) {
                 $q->where('name', 'like', "%{$keyword}%")
-                  ->orWhere('code', 'like', "%{$keyword}%");
+                    ->orWhere('code', 'like', "%{$keyword}%");
             });
         }
 
         $documentTypes = $query->orderBy('name')->get();
 
         return view('admin.quan-ly-loai-don', [
-            'tieuDeTrang'   => 'Quản lý loại đơn',
-            'trangHienTai'  => 'quan_ly_loai_don',
+            'tieuDeTrang' => 'Quản lý loại đơn',
+            'trangHienTai' => 'quan_ly_loai_don',
             'documentTypes' => $documentTypes,
-            'keyword'       => $keyword,
+            'keyword' => $keyword,
         ]);
     }
 
     public function create()
     {
         return view('admin.them-loai-don', [
-            'tieuDeTrang'  => 'Thêm loại đơn',
+            'tieuDeTrang' => 'Thêm loại đơn',
             'trangHienTai' => 'quan_ly_loai_don',
         ]);
     }
@@ -42,21 +42,21 @@ class DocumentTypeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'code'        => ['required', 'string', 'max:20', 'unique:document_types,code'],
-            'name'        => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:20', 'unique:document_types,code'],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'is_active'   => ['required', 'in:0,1'],
+            'is_active' => ['required', 'in:0,1'],
         ], [
             'code.required' => 'Vui lòng nhập mã loại chứng chỉ.',
-            'code.unique'   => 'Mã này đã được sử dụng cho loại chứng chỉ khác.',
+            'code.unique' => 'Mã này đã được sử dụng cho loại chứng chỉ khác.',
             'name.required' => 'Vui lòng nhập tên loại chứng chỉ.',
         ]);
 
         $documentType = DocumentType::create([
-            'code'        => $data['code'],
-            'name'        => $data['name'],
+            'code' => $data['code'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'is_active'   => (bool) $data['is_active'],
+            'is_active' => (bool) $data['is_active'],
         ]);
 
         activity()
@@ -72,7 +72,7 @@ class DocumentTypeController extends Controller
         $documentType = DocumentType::findOrFail($id);
 
         return view('admin.sua-loai-don', [
-            'tieuDeTrang'  => 'Sửa loại đơn',
+            'tieuDeTrang' => 'Sửa loại đơn',
             'trangHienTai' => 'quan_ly_loai_don',
             'documentType' => $documentType,
         ]);
@@ -83,20 +83,20 @@ class DocumentTypeController extends Controller
         $documentType = DocumentType::findOrFail($id);
 
         $data = $request->validate([
-            'code'        => ['required', 'string', 'max:20', 'unique:document_types,code,' . $documentType->id],
-            'name'        => ['required', 'string', 'max:150'],
+            'code' => ['required', 'string', 'max:20', 'unique:document_types,code,'.$documentType->id],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'is_active'   => ['required', 'in:0,1'],
+            'is_active' => ['required', 'in:0,1'],
         ], [
-            'code.unique'   => 'Mã này đã được sử dụng cho loại chứng chỉ khác.',
+            'code.unique' => 'Mã này đã được sử dụng cho loại chứng chỉ khác.',
             'name.required' => 'Vui lòng nhập tên loại chứng chỉ.',
         ]);
 
         $documentType->update([
-            'code'        => $data['code'],
-            'name'        => $data['name'],
+            'code' => $data['code'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'is_active'   => (bool) $data['is_active'],
+            'is_active' => (bool) $data['is_active'],
         ]);
 
         activity()
@@ -110,7 +110,7 @@ class DocumentTypeController extends Controller
     public function toggleStatus(Request $request, $id)
     {
         $documentType = DocumentType::findOrFail($id);
-        $documentType->is_active = !$documentType->is_active;
+        $documentType->is_active = ! $documentType->is_active;
         $documentType->save();
 
         $action = $documentType->is_active ? 'Hoạt động' : 'Không hoạt động';

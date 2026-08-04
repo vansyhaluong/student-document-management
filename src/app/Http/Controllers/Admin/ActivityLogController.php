@@ -14,8 +14,8 @@ class ActivityLogController extends Controller
         $user = $request->user();
 
         $causerId = $request->query('nguoi_dung_id', '');
-        $tuNgay   = $request->query('tu_ngay', '');
-        $denNgay  = $request->query('den_ngay', '');
+        $tuNgay = $request->query('tu_ngay', '');
+        $denNgay = $request->query('den_ngay', '');
 
         $query = Activity::query()->with('causer')->latest();
 
@@ -41,13 +41,13 @@ class ActivityLogController extends Controller
             : collect();
 
         return view('admin.lich-su-thao-tac', [
-            'tieuDeTrang'    => 'Lịch sử thao tác',
-            'trangHienTai'   => 'lich_su',
-            'activities'     => $activities,
-            'accounts'       => $accounts,
-            'causerId'       => $causerId,
-            'tuNgay'         => $tuNgay,
-            'denNgay'        => $denNgay,
+            'tieuDeTrang' => 'Lịch sử thao tác',
+            'trangHienTai' => 'lich_su',
+            'activities' => $activities,
+            'accounts' => $accounts,
+            'causerId' => $causerId,
+            'tuNgay' => $tuNgay,
+            'denNgay' => $denNgay,
         ]);
     }
 }

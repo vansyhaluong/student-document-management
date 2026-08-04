@@ -42,21 +42,21 @@ class LookupDocumentController extends Controller
         }
 
         return view('public.tra-cuu', [
-            'tieuDeTrang'   => 'Tra cứu hồ sơ',
-            'nutHeader'     => ['text' => 'Trang chủ', 'url' => route('home')],
-            'studentCode'   => $studentCode,
-            'student'       => $student,
-            'documents'     => $documents,
+            'tieuDeTrang' => 'Tra cứu hồ sơ',
+            'nutHeader' => ['text' => 'Trang chủ', 'url' => route('home')],
+            'studentCode' => $studentCode,
+            'student' => $student,
+            'documents' => $documents,
             'documentTypes' => DocumentType::orderBy('name')->get(),
-            'allStatuses'   => DocumentStatus::cases(),
-            'notFound'      => $studentCode !== '' && !$student,
+            'allStatuses' => DocumentStatus::cases(),
+            'notFound' => $studentCode !== '' && ! $student,
         ]);
     }
 
     public function show(Request $request)
     {
         $documentCode = trim((string) $request->query('document_code', ''));
-        $studentCode  = trim((string) $request->query('student_code', ''));
+        $studentCode = trim((string) $request->query('student_code', ''));
 
         $document = StudentDocument::with(['documentType', 'student', 'statusHistory.changedByUser'])
             ->where('document_code', $documentCode)
@@ -64,9 +64,9 @@ class LookupDocumentController extends Controller
             ->first();
 
         return view('public.tra-cuu-chi-tiet', [
-            'tieuDeTrang' => $document ? 'Chi tiết hồ sơ ' . $document->document_code : 'Không tìm thấy đơn',
-            'nutHeader'   => ['text' => 'Trang chủ', 'url' => route('home')],
-            'document'    => $document,
+            'tieuDeTrang' => $document ? 'Chi tiết hồ sơ '.$document->document_code : 'Không tìm thấy đơn',
+            'nutHeader' => ['text' => 'Trang chủ', 'url' => route('home')],
+            'document' => $document,
             'studentCode' => $studentCode,
         ]);
     }

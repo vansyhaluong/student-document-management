@@ -12,18 +12,18 @@ class ReportController extends Controller
 {
     private array $chartColors = [
         'waiting_for_receipt' => '#1e4fd6',
-        'received'            => '#16a34a',
-        'processing'          => '#f59e0b',
-        'needs_supplement'    => '#eab308',
-        'completed'           => '#7c3aed',
-        'invalid'             => '#dc2626',
-        'cancelled'           => '#6b7280',
+        'received' => '#16a34a',
+        'processing' => '#f59e0b',
+        'needs_supplement' => '#eab308',
+        'completed' => '#7c3aed',
+        'invalid' => '#dc2626',
+        'cancelled' => '#6b7280',
     ];
 
     public function index(Request $request)
     {
         $days = (int) $request->query('so_ngay', 7);
-        if (!in_array($days, [7, 30, 90], true)) {
+        if (! in_array($days, [7, 30, 90], true)) {
             $days = 7;
         }
 
@@ -40,9 +40,9 @@ class ReportController extends Controller
             $start = $cumulative;
             $cumulative += $percent;
             $statusChart[] = [
-                'status'  => $status,
-                'color'   => $this->chartColors[$status->value],
-                'count'   => $count,
+                'status' => $status,
+                'color' => $this->chartColors[$status->value],
+                'count' => $count,
                 'percent' => $percent,
                 'gradient' => "{$this->chartColors[$status->value]} {$start}% {$cumulative}%",
             ];
@@ -78,8 +78,11 @@ class ReportController extends Controller
         }
 
         // Vẽ SVG line chart
-        $svgWidth = 720; $svgHeight = 240;
-        $marginLeft = 30; $marginBottom = 30; $marginTop = 20;
+        $svgWidth = 720;
+        $svgHeight = 240;
+        $marginLeft = 30;
+        $marginBottom = 30;
+        $marginTop = 20;
         $drawWidth = $svgWidth - $marginLeft - 20;
         $drawHeight = $svgHeight - $marginTop - $marginBottom;
         $pointCount = count($dateList);
@@ -92,7 +95,7 @@ class ReportController extends Controller
                 $x = $marginLeft + $idx * $stepX;
                 $value = $seriesByStatus[$status->value][$d];
                 $y = $marginTop + $drawHeight - ($value / $maxValue * $drawHeight);
-                $points[] = round($x, 1) . ',' . round($y, 1);
+                $points[] = round($x, 1).','.round($y, 1);
             }
             $lines[$status->value] = implode(' ', $points);
         }
@@ -100,20 +103,20 @@ class ReportController extends Controller
         $labelStep = max(1, (int) ceil($days / 7));
 
         return view('admin.bao-cao-thong-ke', [
-            'tieuDeTrang'    => 'Báo cáo - Thống kê',
-            'trangHienTai'   => 'bao_cao',
-            'days'           => $days,
-            'totalAll'       => $totalAll,
-            'statusChart'    => $statusChart,
+            'tieuDeTrang' => 'Báo cáo - Thống kê',
+            'trangHienTai' => 'bao_cao',
+            'days' => $days,
+            'totalAll' => $totalAll,
+            'statusChart' => $statusChart,
             'gradientString' => $gradientString,
-            'dateList'       => $dateList,
-            'lines'          => $lines,
-            'svgWidth'       => $svgWidth,
-            'svgHeight'      => $svgHeight,
-            'marginLeft'     => $marginLeft,
-            'marginTop'      => $marginTop,
-            'drawHeight'     => $drawHeight,
-            'labelStep'      => $labelStep,
+            'dateList' => $dateList,
+            'lines' => $lines,
+            'svgWidth' => $svgWidth,
+            'svgHeight' => $svgHeight,
+            'marginLeft' => $marginLeft,
+            'marginTop' => $marginTop,
+            'drawHeight' => $drawHeight,
+            'labelStep' => $labelStep,
         ]);
     }
 
@@ -123,7 +126,7 @@ class ReportController extends Controller
             ->orderByDesc('submitted_at')
             ->get();
 
-        $filename = 'bao-cao-don-' . now()->format('Ymd_His') . '.csv';
+        $filename = 'bao-cao-don-'.now()->format('Ymd_His').'.csv';
 
         return Response::streamDownload(function () use ($documents) {
             $handle = fopen('php://output', 'w');

@@ -13,21 +13,21 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
-        $keyword     = trim((string) $request->query('tu_khoa', ''));
-        $status      = $request->query('status', '');
-        $tuNgay      = $request->query('tu_ngay', '');
-        $denNgay     = $request->query('den_ngay', '');
+        $keyword = trim((string) $request->query('tu_khoa', ''));
+        $status = $request->query('status', '');
+        $tuNgay = $request->query('tu_ngay', '');
+        $denNgay = $request->query('den_ngay', '');
 
         $query = StudentDocument::with(['student', 'documentType']);
 
         if ($keyword !== '') {
             $query->where(function ($q) use ($keyword) {
                 $q->where('document_code', 'like', "%{$keyword}%")
-                  ->orWhere('student_code', 'like', "%{$keyword}%")
-                  ->orWhereHas('student', function ($q2) use ($keyword) {
-                      $q2->where('last_name', 'like', "%{$keyword}%")
-                         ->orWhere('first_name', 'like', "%{$keyword}%");
-                  });
+                    ->orWhere('student_code', 'like', "%{$keyword}%")
+                    ->orWhereHas('student', function ($q2) use ($keyword) {
+                        $q2->where('last_name', 'like', "%{$keyword}%")
+                            ->orWhere('first_name', 'like', "%{$keyword}%");
+                    });
             });
         }
 
@@ -51,15 +51,15 @@ class DocumentController extends Controller
             ->pluck('total', 'status');
 
         return view('admin.quan-ly-don', [
-            'tieuDeTrang'    => 'Quản lý đơn hồ sơ',
-            'trangHienTai'   => 'quan_ly_don',
-            'documents'      => $documents,
-            'keyword'        => $keyword,
-            'status'         => $status,
-            'tuNgay'         => $tuNgay,
-            'denNgay'        => $denNgay,
-            'allStatuses'    => DocumentStatus::cases(),
-            'totalAll'       => $totalAll,
+            'tieuDeTrang' => 'Quản lý đơn hồ sơ',
+            'trangHienTai' => 'quan_ly_don',
+            'documents' => $documents,
+            'keyword' => $keyword,
+            'status' => $status,
+            'tuNgay' => $tuNgay,
+            'denNgay' => $denNgay,
+            'allStatuses' => DocumentStatus::cases(),
+            'totalAll' => $totalAll,
             'countsByStatus' => $countsByStatus,
         ]);
     }
@@ -72,11 +72,11 @@ class DocumentController extends Controller
         [$canUpdate, $allowedStatuses] = $this->resolvePermission($document);
 
         return view('admin.chi-tiet-don', [
-            'tieuDeTrang'      => 'Chi tiết đơn ' . $document->document_code,
-            'trangHienTai'     => 'quan_ly_don',
-            'document'         => $document,
-            'canUpdate'        => $canUpdate,
-            'allowedStatuses'  => $allowedStatuses,
+            'tieuDeTrang' => 'Chi tiết đơn '.$document->document_code,
+            'trangHienTai' => 'quan_ly_don',
+            'document' => $document,
+            'canUpdate' => $canUpdate,
+            'allowedStatuses' => $allowedStatuses,
         ]);
     }
 
@@ -85,20 +85,20 @@ class DocumentController extends Controller
         $document = StudentDocument::findOrFail($id);
         [$canUpdate, $allowedStatuses] = $this->resolvePermission($document);
 
-        if (!$canUpdate) {
+        if (! $canUpdate) {
             abort(403, 'Bạn không có quyền cập nhật trạng thái cho đơn này.');
         }
 
         $allowedValues = array_map(fn ($s) => $s->value, $allowedStatuses);
 
         $data = $request->validate([
-            'status_moi'     => ['required', 'string', 'in:' . implode(',', $allowedValues)],
-            'ghi_chu_moi'    => ['required', 'string', 'max:2000'],
+            'status_moi' => ['required', 'string', 'in:'.implode(',', $allowedValues)],
+            'ghi_chu_moi' => ['required', 'string', 'max:2000'],
             'invalid_reason' => ['nullable', 'string', 'max:1000'],
         ], [
-            'status_moi.required'  => 'Vui lòng chọn trạng thái mới.',
-            'status_moi.in'        => 'Trạng thái không hợp lệ hoặc bạn không có quyền chuyển sang trạng thái này.',
-            
+            'status_moi.required' => 'Vui lòng chọn trạng thái mới.',
+            'status_moi.in' => 'Trạng thái không hợp lệ hoặc bạn không có quyền chuyển sang trạng thái này.',
+
         ]);
 
         $newStatus = DocumentStatus::from($data['status_moi']);
@@ -119,11 +119,11 @@ class DocumentController extends Controller
 
             DocumentStatusHistory::create([
                 'student_document_id' => $document->id,
-                'status'               => $newStatus,
-                'invalid_reason'       => $newStatus === DocumentStatus::Invalid ? ($data['invalid_reason'] ?? null) : null,
-                'note'                 => $data['ghi_chu_moi'],
-                'changed_by_user_id'   => $user->id,
-                'changed_at'           => now(),
+                'status' => $newStatus,
+                'invalid_reason' => $newStatus === DocumentStatus::Invalid ? ($data['invalid_reason'] ?? null) : null,
+                'note' => $data['ghi_chu_moi'],
+                'changed_by_user_id' => $user->id,
+                'changed_at' => now(),
             ]);
         });
 
@@ -150,6 +150,7 @@ class DocumentController extends Controller
             if ($document->status === DocumentStatus::WaitingForReceipt) {
                 return [true, [DocumentStatus::Received]];
             }
+
             return [false, []];
         }
 

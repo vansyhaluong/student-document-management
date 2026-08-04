@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Public;
 
 use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
-use App\Models\DocumentType;
 use App\Models\DocumentStatusHistory;
+use App\Models\DocumentType;
 use App\Models\Student;
 use App\Models\StudentDocument;
 use App\Models\User;
@@ -18,7 +18,7 @@ class SubmitDocumentController extends Controller
     {
         return view('public.nop-don', [
             'tieuDeTrang' => 'Nộp hồ sơ - Hệ thống tra cứu & nộp đơn sinh viên',
-            'nutHeader'   => ['text' => 'Trang chủ', 'url' => route('home')],
+            'nutHeader' => ['text' => 'Trang chủ', 'url' => route('home')],
         ]);
     }
 
@@ -32,7 +32,7 @@ class SubmitDocumentController extends Controller
 
         $student = Student::find($data['student_code']);
 
-        if (!$student) {
+        if (! $student) {
             return back()
                 ->withInput()
                 ->withErrors(['student_code' => 'Không tìm thấy sinh viên với MSSV này. Vui lòng kiểm tra lại.']);
@@ -45,42 +45,44 @@ class SubmitDocumentController extends Controller
 
     public function showStep2()
     {
-        if (!session()->has('sv_nop_don')) {
+        if (! session()->has('sv_nop_don')) {
             return redirect()->route('nop-don');
         }
 
         $student = Student::find(session('sv_nop_don'));
-        if (!$student) {
+        if (! $student) {
             session()->forget('sv_nop_don');
+
             return redirect()->route('nop-don');
         }
 
         return view('public.nop-don-chi-tiet', [
-            'tieuDeTrang'   => 'Nộp hồ sơ - Điền thông tin đơn',
-            'nutHeader'     => ['text' => 'Trang chủ', 'url' => route('home')],
-            'student'       => $student,
+            'tieuDeTrang' => 'Nộp hồ sơ - Điền thông tin đơn',
+            'nutHeader' => ['text' => 'Trang chủ', 'url' => route('home')],
+            'student' => $student,
             'documentTypes' => DocumentType::active()->get(),
         ]);
     }
 
     public function postStep2(Request $request)
     {
-        if (!session()->has('sv_nop_don')) {
+        if (! session()->has('sv_nop_don')) {
             return redirect()->route('nop-don');
         }
 
         $student = Student::find(session('sv_nop_don'));
-        if (!$student) {
+        if (! $student) {
             session()->forget('sv_nop_don');
+
             return redirect()->route('nop-don');
         }
 
         $data = $request->validate([
             'document_type_id' => ['required', 'integer', 'exists:document_types,id'],
-            'note'             => ['required', 'string', 'max:2000'],
+            'note' => ['required', 'string', 'max:2000'],
         ], [
             'document_type_id.required' => 'Vui lòng chọn loại chứng chỉ cần nộp.',
-            'note.required'             => 'Vui lòng nhập nội dung/lý do nộp.',
+            'note.required' => 'Vui lòng nhập nội dung/lý do nộp.',
         ]);
 
         $documentCode = $this->generateDocumentCode();
@@ -88,20 +90,20 @@ class SubmitDocumentController extends Controller
 
         $document = DB::transaction(function () use ($data, $student, $documentCode, $systemUserId) {
             $document = StudentDocument::create([
-                'document_code'    => $documentCode,
-                'student_code'     => $student->student_code,
+                'document_code' => $documentCode,
+                'student_code' => $student->student_code,
                 'document_type_id' => $data['document_type_id'],
-                'status'           => DocumentStatus::WaitingForReceipt,
-                'submitted_at'     => now(),
-                'note'             => $data['note'],
+                'status' => DocumentStatus::WaitingForReceipt,
+                'submitted_at' => now(),
+                'note' => $data['note'],
             ]);
 
             DocumentStatusHistory::create([
                 'student_document_id' => $document->id,
-                'status'               => DocumentStatus::WaitingForReceipt,
-                'note'                 => 'Sinh viên nộp hồ sơ',
-                'changed_by_user_id'   => $systemUserId,
-                'changed_at'           => now(),
+                'status' => DocumentStatus::WaitingForReceipt,
+                'note' => 'Sinh viên nộp hồ sơ',
+                'changed_by_user_id' => $systemUserId,
+                'changed_at' => now(),
             ]);
 
             return $document;
@@ -115,7 +117,7 @@ class SubmitDocumentController extends Controller
 
     public function showSuccess()
     {
-        if (!session()->has('ma_don_vua_nop')) {
+        if (! session()->has('ma_don_vua_nop')) {
             return redirect()->route('nop-don');
         }
 
@@ -123,19 +125,19 @@ class SubmitDocumentController extends Controller
         session()->forget('ma_don_vua_nop');
 
         return view('public.nop-don-thanh-cong', [
-            'tieuDeTrang'  => 'Nộp hồ sơ thành công',
-            'nutHeader'    => ['text' => 'Trang chủ', 'url' => route('home')],
+            'tieuDeTrang' => 'Nộp hồ sơ thành công',
+            'nutHeader' => ['text' => 'Trang chủ', 'url' => route('home')],
             'documentCode' => $documentCode,
         ]);
     }
 
     private function generateDocumentCode(): string
     {
-        $prefix = 'HS' . now()->format('ymd');
+        $prefix = 'HS'.now()->format('ymd');
 
         do {
             $suffix = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-            $code = $prefix . $suffix;
+            $code = $prefix.$suffix;
         } while (StudentDocument::where('document_code', $code)->exists());
 
         return $code;

@@ -56,13 +56,13 @@ class DashboardController extends Controller
         $recentActivities = Activity::latest()->take(5)->get();
 
         return view('admin.tong-quan', [
-            'tieuDeTrang'      => 'Tổng quan',
-            'trangHienTai'     => 'tong_quan',
-            'totalDocuments'   => $totalDocuments,
-            'statusChart'      => $statusChart,
-            'gradientString'   => $gradientString,
-            'popularTypes'     => $popularTypes,
-            'latestDocuments'  => $latestDocuments,
+            'tieuDeTrang' => 'Tổng quan',
+            'trangHienTai' => 'tong_quan',
+            'totalDocuments' => $totalDocuments,
+            'statusChart' => $statusChart,
+            'gradientString' => $gradientString,
+            'popularTypes' => $popularTypes,
+            'latestDocuments' => $latestDocuments,
             'recentActivities' => $recentActivities,
         ]);
     }

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
+    use HasFactory;
+
     protected $fillable = [
         'username',
         'password_hash',
@@ -25,10 +28,6 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
     ];
 
-    /**
-     * Bảng users dùng cột password_hash thay vì password mặc định của Laravel,
-     * nên phải override lại tên cột auth dùng để so khớp mật khẩu khi login.
-     */
     public function getAuthPassword(): string
     {
         return $this->password_hash;

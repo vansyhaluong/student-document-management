@@ -21,8 +21,8 @@ class AccountController extends Controller
         if ($keyword !== '') {
             $query->where(function ($q) use ($keyword) {
                 $q->where('full_name', 'like', "%{$keyword}%")
-                  ->orWhere('email', 'like', "%{$keyword}%")
-                  ->orWhere('username', 'like', "%{$keyword}%");
+                    ->orWhere('email', 'like', "%{$keyword}%")
+                    ->orWhere('username', 'like', "%{$keyword}%");
             });
         }
         if ($role !== '') {
@@ -32,21 +32,21 @@ class AccountController extends Controller
         $accounts = $query->orderByDesc('created_at')->get();
 
         return view('admin.quan-ly-tai-khoan', [
-            'tieuDeTrang'  => 'Quản lý tài khoản',
+            'tieuDeTrang' => 'Quản lý tài khoản',
             'trangHienTai' => 'quan_ly_tk',
-            'accounts'     => $accounts,
-            'keyword'      => $keyword,
-            'role'         => $role,
-            'roles'        => $this->roles,
+            'accounts' => $accounts,
+            'keyword' => $keyword,
+            'role' => $role,
+            'roles' => $this->roles,
         ]);
     }
 
     public function create()
     {
         return view('admin.them-tai-khoan', [
-            'tieuDeTrang'  => 'Thêm tài khoản',
+            'tieuDeTrang' => 'Thêm tài khoản',
             'trangHienTai' => 'quan_ly_tk',
-            'roles'        => $this->roles,
+            'roles' => $this->roles,
         ]);
     }
 
@@ -54,24 +54,24 @@ class AccountController extends Controller
     {
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:150'],
-            'username'  => ['required', 'string', 'max:50', 'unique:users,username'],
-            'email'     => ['required', 'email', 'max:150', 'unique:users,email'],
-            'password'  => ['required', 'string', 'min:6'],
-            'role'      => ['required', 'in:' . implode(',', $this->roles)],
+            'username' => ['required', 'string', 'max:50', 'unique:users,username'],
+            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
+            'role' => ['required', 'in:'.implode(',', $this->roles)],
             'is_active' => ['required', 'in:0,1'],
         ], [
             'username.unique' => 'Username này đã được sử dụng.',
-            'email.unique'    => 'Email này đã được sử dụng.',
-            'password.min'    => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'email.unique' => 'Email này đã được sử dụng.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
         $account = User::create([
-            'full_name'     => $data['full_name'],
-            'username'      => $data['username'],
-            'email'         => $data['email'],
+            'full_name' => $data['full_name'],
+            'username' => $data['username'],
+            'email' => $data['email'],
             'password_hash' => Hash::make($data['password']),
-            'role'          => $data['role'],
-            'is_active'     => (bool) $data['is_active'],
+            'role' => $data['role'],
+            'is_active' => (bool) $data['is_active'],
         ]);
 
         activity()
@@ -87,10 +87,10 @@ class AccountController extends Controller
         $account = User::findOrFail($id);
 
         return view('admin.sua-tai-khoan', [
-            'tieuDeTrang'  => 'Sửa tài khoản',
+            'tieuDeTrang' => 'Sửa tài khoản',
             'trangHienTai' => 'quan_ly_tk',
-            'account'      => $account,
-            'roles'        => $this->roles,
+            'account' => $account,
+            'roles' => $this->roles,
         ]);
     }
 
@@ -100,9 +100,9 @@ class AccountController extends Controller
 
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:150'],
-            'email'     => ['required', 'email', 'max:150', 'unique:users,email,' . $account->id],
-            'password'  => ['nullable', 'string', 'min:6'],
-            'role'      => ['required', 'in:' . implode(',', $this->roles)],
+            'email' => ['required', 'email', 'max:150', 'unique:users,email,'.$account->id],
+            'password' => ['nullable', 'string', 'min:6'],
+            'role' => ['required', 'in:'.implode(',', $this->roles)],
             'is_active' => ['required', 'in:0,1'],
         ], [
             'email.unique' => 'Email này đã được tài khoản khác sử dụng.',
@@ -114,7 +114,7 @@ class AccountController extends Controller
         $account->role = $data['role'];
         $account->is_active = (bool) $data['is_active'];
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $account->password_hash = Hash::make($data['password']);
         }
 
@@ -137,7 +137,7 @@ class AccountController extends Controller
                 ->with('loi', 'Bạn không thể tự khóa tài khoản đang đăng nhập của chính mình.');
         }
 
-        $account->is_active = !$account->is_active;
+        $account->is_active = ! $account->is_active;
         $account->save();
 
         $action = $account->is_active ? 'đã mở khóa' : 'đã khóa';
