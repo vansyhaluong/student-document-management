@@ -14,33 +14,37 @@
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="logo-box">
+        <img src="{{ asset('assets/images/logo-tdc.png') }}" alt="Logo TDC" class="logo-img">
         <div class="logo-text">
-          <p>DOCTRACK</p>
-          <p style="font-size:11px;">Khoa CNTT - Trường CĐ Công nghệ Thủ Đức</p>
+          <p>KHOA CÔNG NGHỆ THÔNG TIN</p>
+          <p class="logo-sub">Trường Cao đẳng Công nghệ Thủ Đức</p>
         </div>
       </div>
 
       <nav class="menu-admin">
       <a href="{{ route('admin.dashboard') }}" class="{{ ($trangHienTai ?? '') === 'tong_quan' ? 'dang-chon' : '' }}">
-        📊 Tổng quan
+        Tổng quan
       </a>
       <a href="{{ route('admin.quan-ly-don') }}" class="{{ ($trangHienTai ?? '') === 'quan_ly_don' ? 'dang-chon' : '' }}">
-        📋 Quản lý đơn
+        Quản lý đơn
       </a>
       @if (auth()->user()->role === 'admin')
         <a href="{{ route('admin.quan-ly-loai-don') }}" class="{{ ($trangHienTai ?? '') === 'quan_ly_loai_don' ? 'dang-chon' : '' }}">
-          🗂 Quản lý loại đơn
+          Quản lý loại đơn
+        </a>
+        <a href="{{ route('admin.quan-ly-trang-thai') }}" class="{{ ($trangHienTai ?? '') === 'quan_ly_trang_thai' ? 'dang-chon' : '' }}">
+          Quản lý trạng thái
         </a>
         <a href="{{ route('admin.quan-ly-tai-khoan') }}" class="{{ ($trangHienTai ?? '') === 'quan_ly_tk' ? 'dang-chon' : '' }}">
-          👤 Quản lý tài khoản
+          Quản lý tài khoản
         </a>
       @endif
       <a href="{{ route('admin.lich-su') }}" class="{{ ($trangHienTai ?? '') === 'lich_su' ? 'dang-chon' : '' }}">
-        🕒 Lịch sử thao tác
+        Lịch sử thao tác
       </a>
       @if (in_array(auth()->user()->role, ['admin', 'secretary']))
         <a href="{{ route('admin.bao-cao') }}" class="{{ ($trangHienTai ?? '') === 'bao_cao' ? 'dang-chon' : '' }}">
-          📈 Báo cáo - Thống kê
+          Báo cáo - Thống kê
         </a>
       @endif
     </nav>

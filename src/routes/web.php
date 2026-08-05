@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DocumentStatusController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -58,6 +59,14 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/quan-ly-loai-don/{id}/sua', [DocumentTypeController::class, 'edit'])->name('quan-ly-loai-don.sua');
         Route::post('/quan-ly-loai-don/{id}', [DocumentTypeController::class, 'update'])->name('quan-ly-loai-don.cap-nhat');
         Route::post('/quan-ly-loai-don/{id}/doi-trang-thai', [DocumentTypeController::class, 'toggleStatus'])->name('quan-ly-loai-don.doi-trang-thai');
+
+        Route::get('/quan-ly-trang-thai', [DocumentStatusController::class, 'index'])->name('quan-ly-trang-thai');
+        Route::get('/quan-ly-trang-thai/them', [DocumentStatusController::class, 'create'])->name('quan-ly-trang-thai.them');
+        Route::post('/quan-ly-trang-thai', [DocumentStatusController::class, 'store'])->name('quan-ly-trang-thai.luu');
+        Route::get('/quan-ly-trang-thai/{id}/sua', [DocumentStatusController::class, 'edit'])->name('quan-ly-trang-thai.sua');
+        Route::post('/quan-ly-trang-thai/{id}', [DocumentStatusController::class, 'update'])->name('quan-ly-trang-thai.cap-nhat');
+        Route::post('/quan-ly-trang-thai/{id}/doi-trang-thai', [DocumentStatusController::class, 'toggleStatus'])->name('quan-ly-trang-thai.doi-trang-thai');
+        Route::post('/quan-ly-trang-thai/{id}/xoa', [DocumentStatusController::class, 'destroy'])->name('quan-ly-trang-thai.xoa');
     });
 
     Route::middleware('role:admin,secretary')->group(function () {

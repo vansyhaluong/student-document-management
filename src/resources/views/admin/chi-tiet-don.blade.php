@@ -66,12 +66,13 @@
           <div class="thong-bao loi">⚠ {{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ route('admin.quan-ly-don.cap-nhat', $document->id) }}" id="form-cap-nhat">
+        <form method="POST" action="{{ route('admin.quan-ly-don.cap-nhat', $document->id) }}" id="form-cap-nhat"
+              onsubmit="return xacNhanCapNhat()">
           @csrf
           <div class="form-group">
             <label for="status_moi">Trạng thái mới</label>
-            <select id="status_moi" name="status_moi" class="form-control" required
-                    onchange="document.getElementById('khung-ly-do-invalid').style.display = (this.value === 'invalid') ? 'block' : 'none';">
+                <select id="status_moi" name="status_moi" class="form-control" required
+                    onchange="capNhatFormTheoTrangThai(this)">
               @foreach ($allowedStatuses as $s)
                 <option value="{{ $s->value }}">{{ $s->label() }}</option>
               @endforeach
@@ -85,9 +86,9 @@
           </div>
 
           <div class="form-group">
-            <label for="ghi_chu_moi">Ghi chú (bắt buộc)</label>
+            <label for="ghi_chu_moi" id="nhan-ghi-chu">Ghi chú</label>
             <textarea id="ghi_chu_moi" name="ghi_chu_moi" class="form-control" rows="3"
-                      placeholder="Nhập ghi chú xử lý..." required></textarea>
+                      placeholder="Nhập ghi chú xử lý..."></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Cập nhật</button>
@@ -97,3 +98,33 @@
   </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+function capNhatFormTheoTrangThai(select) {
+  document.getElementById('khung-ly-do-invalid').style.display = (select.value === 'invalid') ? 'block' : 'none';
+
+  const canGhiChu = (select.value === 'invalid' || select.value === 'cancelled');
+  const ghiChu = document.getElementById('ghi_chu_moi');
+  const nhan = document.getElementById('nhan-ghi-chu');
+
+  if (canGhiChu) {
+    ghiChu.setAttribute('required', 'required');
+    nhan.textContent = 'Ghi chú (bắt buộc — dùng để thông báo cho sinh viên)';
+  } else {
+    ghiChu.removeAttribute('required');
+    nhan.textContent = 'Ghi chú (không bắt buộc)';
+  }
+}
+
+function xacNhanCapNhat() {
+  const select = document.getElementById('status_moi');
+  const nhan = select.options[select.selectedIndex].text;
+  return confirm(`Xác nhận chuyển đơn sang trạng thái "${nhan}"?`);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const select = document.getElementById('status_moi');
+  if (select) capNhatFormTheoTrangThai(select);
+});
+</script>
+@endpush

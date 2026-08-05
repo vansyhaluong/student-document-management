@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\DocumentStatus;
 use App\Models\DocumentStatusHistory;
 use App\Models\StudentDocument;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class DocumentController extends Controller
         $tuNgay = $request->query('tu_ngay', '');
         $denNgay = $request->query('den_ngay', '');
 
-        $query = StudentDocument::with(['student', 'documentType']);
+        $query = StudentDocument::with(['student', 'documentType', 'assignedSecretary']);
 
         if ($keyword !== '') {
             $query->where(function ($q) use ($keyword) {
@@ -50,6 +50,12 @@ class DocumentController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
+        $user = $request->user();
+        $permissions = [];
+        foreach ($documents as $doc) {
+            $permissions[$doc->id] = $doc->statusUpdatePermission($user);
+        }
+
         return view('admin.quan-ly-don', [
             'tieuDeTrang' => 'Quản lý đơn hồ sơ',
             'trangHienTai' => 'quan_ly_don',
@@ -61,6 +67,7 @@ class DocumentController extends Controller
             'allStatuses' => DocumentStatus::cases(),
             'totalAll' => $totalAll,
             'countsByStatus' => $countsByStatus,
+            'permissions' => $permissions,
         ]);
     }
 
@@ -93,12 +100,12 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'status_moi' => ['required', 'string', 'in:'.implode(',', $allowedValues)],
-            'ghi_chu_moi' => ['required', 'string', 'max:2000'],
+            'ghi_chu_moi' => ['nullable', 'string', 'max:2000', 'required_if:status_moi,invalid,cancelled'],
             'invalid_reason' => ['nullable', 'string', 'max:1000'],
         ], [
             'status_moi.required' => 'Vui lòng chọn trạng thái mới.',
             'status_moi.in' => 'Trạng thái không hợp lệ hoặc bạn không có quyền chuyển sang trạng thái này.',
-
+            'ghi_chu_moi.required_if' => 'Bắt buộc nhập ghi chú lý do khi chuyển sang "Không hợp lệ" hoặc "Đã hủy" (dùng để thông báo cho sinh viên).',
         ]);
 
         $newStatus = DocumentStatus::from($data['status_moi']);
@@ -106,13 +113,15 @@ class DocumentController extends Controller
 
         DB::transaction(function () use ($document, $newStatus, $data, $user) {
             $document->status = $newStatus;
-            $document->note = $data['ghi_chu_moi'];
+            if (! empty($data['ghi_chu_moi'])) {
+                $document->note = $data['ghi_chu_moi'];
+            }
             $document->assigned_secretary_user_id = $user->id;
 
-            if ($newStatus === DocumentStatus::Invalid) {
+            if ($newStatus->isCode('invalid')) {
                 $document->invalid_reason = $data['invalid_reason'] ?? null;
             }
-            if ($newStatus === DocumentStatus::Completed) {
+            if ($newStatus->isCode('completed')) {
                 $document->completed_at = now();
             }
             $document->save();
@@ -120,8 +129,8 @@ class DocumentController extends Controller
             DocumentStatusHistory::create([
                 'student_document_id' => $document->id,
                 'status' => $newStatus,
-                'invalid_reason' => $newStatus === DocumentStatus::Invalid ? ($data['invalid_reason'] ?? null) : null,
-                'note' => $data['ghi_chu_moi'],
+                'invalid_reason' => $newStatus->isCode('invalid') ? ($data['invalid_reason'] ?? null) : null,
+                'note' => $data['ghi_chu_moi'] ?? null,
                 'changed_by_user_id' => $user->id,
                 'changed_at' => now(),
             ]);
@@ -131,30 +140,12 @@ class DocumentController extends Controller
             ->causedBy($user)
             ->log("{$user->full_name} đã chuyển đơn {$document->document_code} sang trạng thái \"{$newStatus->label()}\"");
 
-        return redirect()->route('admin.quan-ly-don.chi-tiet', $document->id)
+        return redirect()->back()
             ->with('thanh_cong', 'Cập nhật trạng thái thành công.');
     }
 
-    /**
-     * Xác định quyền cập nhật + danh sách trạng thái được phép chọn,
-     * theo role của người dùng đang đăng nhập.
-     *
-     * - staff: chỉ được chuyển waiting_for_receipt -> received, ngoài ra không được sửa.
-     * - secretary / admin: được chọn tự do bất kỳ trạng thái nào trong 7 trạng thái.
-     */
     private function resolvePermission(StudentDocument $document): array
     {
-        $role = auth()->user()->role;
-
-        if ($role === 'staff') {
-            if ($document->status === DocumentStatus::WaitingForReceipt) {
-                return [true, [DocumentStatus::Received]];
-            }
-
-            return [false, []];
-        }
-
-        // secretary hoặc admin
-        return [true, DocumentStatus::cases()];
+        return $document->statusUpdatePermission(auth()->user());
     }
 }

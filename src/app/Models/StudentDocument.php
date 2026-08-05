@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\DocumentStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class StudentDocument extends Model
 {
-    const CREATED_AT = null; // bảng không có created_at, chỉ có submitted_at + updated_at
+    const CREATED_AT = null; 
 
     const UPDATED_AT = 'updated_at';
 
@@ -24,10 +24,17 @@ class StudentDocument extends Model
     ];
 
     protected $casts = [
-        'status' => DocumentStatus::class,
         'submitted_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? DocumentStatus::from($value) : null,
+            set: fn ($value) => $value instanceof DocumentStatus ? $value->code : $value,
+        );
+    }
 
     public function student()
     {
@@ -47,5 +54,18 @@ class StudentDocument extends Model
     public function statusHistory()
     {
         return $this->hasMany(DocumentStatusHistory::class);
+    }
+
+    public function statusUpdatePermission($user): array
+    {
+        if ($user->role === 'staff') {
+            if ($this->status->isCode('waiting_for_receipt')) {
+                return [true, [DocumentStatus::from('received')]];
+            }
+
+            return [false, []];
+        }
+
+        return [true, DocumentStatus::cases()];
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\DocumentStatus;
 use App\Models\DocumentType;
 use App\Models\StudentDocument;
 use Spatie\Activitylog\Models\Activity;
@@ -13,20 +13,14 @@ class DashboardController extends Controller
     public function index()
     {
         $totalDocuments = StudentDocument::count();
-
         $countsByStatus = StudentDocument::selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $statusChart = [
-            ['status' => DocumentStatus::WaitingForReceipt, 'color' => '#1e4fd6'],
-            ['status' => DocumentStatus::Received,          'color' => '#16a34a'],
-            ['status' => DocumentStatus::Processing,        'color' => '#f59e0b'],
-            ['status' => DocumentStatus::NeedsSupplement,   'color' => '#eab308'],
-            ['status' => DocumentStatus::Completed,         'color' => '#7c3aed'],
-            ['status' => DocumentStatus::Invalid,           'color' => '#dc2626'],
-            ['status' => DocumentStatus::Cancelled,         'color' => '#6b7280'],
-        ];
+        $statusChart = [];
+        foreach (DocumentStatus::cases() as $status) {
+            $statusChart[] = ['status' => $status, 'color' => $status->color_hex];
+        }
 
         $cumulative = 0;
         $gradientParts = [];

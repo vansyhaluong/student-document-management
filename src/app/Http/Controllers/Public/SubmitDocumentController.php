@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentStatusHistory;
 use App\Models\DocumentType;
@@ -93,14 +92,14 @@ class SubmitDocumentController extends Controller
                 'document_code' => $documentCode,
                 'student_code' => $student->student_code,
                 'document_type_id' => $data['document_type_id'],
-                'status' => DocumentStatus::WaitingForReceipt,
+                'status' => 'waiting_for_receipt',
                 'submitted_at' => now(),
                 'note' => $data['note'],
             ]);
 
             DocumentStatusHistory::create([
                 'student_document_id' => $document->id,
-                'status' => DocumentStatus::WaitingForReceipt,
+                'status' => 'waiting_for_receipt',
                 'note' => 'Sinh viên nộp hồ sơ',
                 'changed_by_user_id' => $systemUserId,
                 'changed_at' => now(),

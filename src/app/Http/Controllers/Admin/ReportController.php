@@ -2,24 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\DocumentStatus;
 use App\Models\StudentDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class ReportController extends Controller
 {
-    private array $chartColors = [
-        'waiting_for_receipt' => '#1e4fd6',
-        'received' => '#16a34a',
-        'processing' => '#f59e0b',
-        'needs_supplement' => '#eab308',
-        'completed' => '#7c3aed',
-        'invalid' => '#dc2626',
-        'cancelled' => '#6b7280',
-    ];
-
     public function index(Request $request)
     {
         $days = (int) $request->query('so_ngay', 7);
@@ -41,15 +31,14 @@ class ReportController extends Controller
             $cumulative += $percent;
             $statusChart[] = [
                 'status' => $status,
-                'color' => $this->chartColors[$status->value],
+                'color' => $status->color_hex,
                 'count' => $count,
                 'percent' => $percent,
-                'gradient' => "{$this->chartColors[$status->value]} {$start}% {$cumulative}%",
+                'gradient' => "{$status->color_hex} {$start}% {$cumulative}%",
             ];
         }
         $gradientString = implode(', ', array_column($statusChart, 'gradient'));
 
-        // Dữ liệu biểu đồ đường: số đơn nộp theo ngày trong N ngày gần nhất, tách theo trạng thái
         $rows = StudentDocument::selectRaw('DATE(submitted_at) as ngay, status, COUNT(*) as so_luong')
             ->where('submitted_at', '>=', now()->subDays($days - 1)->startOfDay())
             ->groupBy('ngay', 'status')
@@ -131,7 +120,6 @@ class ReportController extends Controller
         return Response::streamDownload(function () use ($documents) {
             $handle = fopen('php://output', 'w');
 
-            // Thêm BOM để Excel nhận đúng UTF-8, không bị lỗi font tiếng Việt
             fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, ['Mã đơn', 'MSSV', 'Họ tên', 'Loại chứng chỉ', 'Ngày nộp', 'Trạng thái', 'Ghi chú']);

@@ -36,21 +36,38 @@
     padding: 20px 0;
   }
   
-  .admin-sidebar .logo-box {
-    padding: 0 20px 20px;
+.admin-sidebar .logo-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px 20px;
     border-bottom: 1px solid rgba(255,255,255,0.15);
     margin-bottom: 16px;
   }
-  
+
+  .admin-sidebar .logo-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
   .admin-sidebar .logo-text p {
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.35;
   }
-  
+
   .admin-sidebar .logo-text p:first-child {
     font-weight: 700;
-    font-size: 18px;
-    letter-spacing: 0.5px;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .admin-sidebar .logo-text .logo-sub {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 2px;
   }
   
   .menu-admin {

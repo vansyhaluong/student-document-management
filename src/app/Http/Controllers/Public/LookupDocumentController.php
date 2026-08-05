@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Enums\DocumentStatus;
+use App\Models\DocumentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentType;
 use App\Models\Student;

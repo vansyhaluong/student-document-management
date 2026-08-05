@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\DocumentStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentStatusHistory extends Model
@@ -21,9 +21,16 @@ class DocumentStatusHistory extends Model
     ];
 
     protected $casts = [
-        'status' => DocumentStatus::class,
         'changed_at' => 'datetime',
     ];
+
+    protected function status(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value ? DocumentStatus::from($value) : null,
+            set: fn ($value) => $value instanceof DocumentStatus ? $value->code : $value,
+        );
+    }
 
     public function studentDocument()
     {
