@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Models\DocumentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\DocumentStatus;
 use App\Models\DocumentType;
 use App\Models\Student;
 use App\Models\StudentDocument;

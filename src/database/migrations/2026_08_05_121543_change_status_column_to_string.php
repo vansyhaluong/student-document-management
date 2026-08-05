@@ -8,8 +8,8 @@ return new class extends Migration
     public function up(): void
     {
 
-        DB::statement("ALTER TABLE student_documents MODIFY status VARCHAR(30) NOT NULL");
-        DB::statement("ALTER TABLE document_status_history MODIFY status VARCHAR(30) NOT NULL");
+        DB::statement('ALTER TABLE student_documents MODIFY status VARCHAR(30) NOT NULL');
+        DB::statement('ALTER TABLE document_status_history MODIFY status VARCHAR(30) NOT NULL');
     }
 
     public function down(): void

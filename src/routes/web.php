@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\DocumentStatusController;
 use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\DocumentStatusController;
 use App\Http\Controllers\Admin\DocumentTypeController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Auth\LoginController;
