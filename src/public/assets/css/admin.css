@@ -50,6 +50,8 @@
     height: 44px;
     object-fit: contain;
     flex-shrink: 0;
+    border-radius: 50%;
+    background: #fff;
   }
 
   .admin-sidebar .logo-text p {
@@ -76,13 +78,22 @@
   }
   
   .menu-admin a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 12px 20px;
     color: rgba(255,255,255,0.85);
     text-decoration: none;
     font-size: 14px;
     border-left: 3px solid transparent;
     transition: background 0.15s, border-color 0.15s;
+  }
+
+  .menu-admin a .icon-menu {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.85;
   }
   
   .menu-admin a:hover {
@@ -94,6 +105,10 @@
     border-left-color: #fff;
     font-weight: 600;
     color: #fff;
+  }
+
+  .menu-admin a.dang-chon .icon-menu {
+    opacity: 1;
   }
   
   /* ===== MAIN AREA ===== */
@@ -395,6 +410,7 @@
     .admin-sidebar { width: 70px; }
     .admin-sidebar .logo-text,
     .menu-admin a span { display: none; }
+    .menu-admin a { justify-content: center; }
     .hang-2-cot { flex-direction: column; }
   }
   /* ===== HÀNG TÌM KIẾM ===== */

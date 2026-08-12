@@ -60,7 +60,10 @@ class StudentDocument extends Model
     {
         if ($user->role === 'staff') {
             if ($this->status->isCode('waiting_for_receipt')) {
-                return [true, [DocumentStatus::from('received')]];
+                // Luôn đưa trạng thái hiện tại vào đầu danh sách để dropdown
+                // hiển thị đúng trạng thái thật đang lưu trong DB, đồng thời
+                // cho phép chuyển tiếp sang "Đã tiếp nhận".
+                return [true, [$this->status, DocumentStatus::from('received')]];
             }
 
             return [false, []];

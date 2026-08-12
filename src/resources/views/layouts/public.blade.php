@@ -14,15 +14,35 @@
 </head>
 <body>
 
-  {{-- ===== HEADER: logo bên trái + nút hành động bên phải ===== --}}
+  {{-- ===== THANH TIỆN ÍCH MỎNG (liên hệ nhanh) ===== --}}
+  <div class="top-utility-bar">
+    <div class="lien-he-nhanh">
+      <a href="tel:0283896534">📞 (028) 3896 8534</a>
+      <a href="mailto:it@tdc.edu.vn">✉ it@tdc.edu.vn</a>
+    </div>
+    <div class="lien-he-nhanh">
+      <span>53 Võ Văn Ngân, TP. Thủ Đức, TP.HCM</span>
+    </div>
+  </div>
+
+  {{-- ===== THANH CHÍNH: logo + menu + nút hành động ===== --}}
   <header class="public-header">
-    <div class="logo-box">
-      <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" onerror="this.style.display='none'">
+    <a href="{{ route('home') }}" class="logo-box">
+      <img src="{{ asset('assets/images/logo-tdc.png') }}" alt="Logo Khoa CNTT - TDC" onerror="this.style.display='none'">
       <div class="logo-text">
         <p>KHOA CÔNG NGHỆ THÔNG TIN</p>
         <p>TRƯỜNG CAO ĐẲNG CÔNG NGHỆ THỦ ĐỨC</p>
       </div>
-    </div>
+    </a>
+
+    <button type="button" class="nut-mo-menu" onclick="document.querySelector('.public-menu').classList.toggle('mo')">☰</button>
+
+    <nav class="public-menu">
+      <a href="{{ route('home') }}" class="{{ ($trangHienTaiCong ?? '') === 'trang_chu' ? 'dang-chon' : '' }}">Trang chủ</a>
+      <a href="{{ route('nop-don') }}" class="{{ ($trangHienTaiCong ?? '') === 'nop_don' ? 'dang-chon' : '' }}">Nộp hồ sơ</a>
+      <a href="{{ route('tra-cuu') }}" class="{{ ($trangHienTaiCong ?? '') === 'tra_cuu' ? 'dang-chon' : '' }}">Tra cứu hồ sơ</a>
+    </nav>
+
     <a href="{{ $nutHeader['url'] }}" class="btn">
       {{ $nutHeader['text'] }}
     </a>

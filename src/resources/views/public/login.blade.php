@@ -15,9 +15,9 @@
 
     {{-- ===== CỘT TRÁI: giới thiệu + minh họa ===== --}}
     <div class="login-gioi-thieu">
+      <img src="{{ asset('assets/images/logo-tdc.png') }}" alt="Logo Khoa CNTT - TDC" class="logo-lon" onerror="this.style.display='none'">
       <h2>HỆ THỐNG TRA CỨU &amp; NỘP ĐƠN SINH VIÊN</h2>
       <p>Hệ thống dành cho cán bộ quản lý.<br>Vui lòng đăng nhập để tiếp tục.</p>
-      <div class="icon-khoa">🔐</div>
     </div>
 
     {{-- ===== CỘT PHẢI: form đăng nhập ===== --}}

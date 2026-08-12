@@ -1,32 +1,62 @@
 /* =====================================================================
    FILE: assets/css/public.css
    MỤC ĐÍCH: Style cho header/footer dùng chung ở các trang công khai.
-
-   LƯU Ý: file này KHÔNG có trong bộ file gốc bạn gửi (header_public.php
-   có <link> tới nhưng chưa có file thật). Mình tự soạn theo đúng tông
-   màu khai báo trong style.css để không vỡ giao diện — nếu bạn có
-   thiết kế gốc khác, gửi lại để mình thay đúng.
+   Đã nâng cấp: navbar 2 tầng (thanh tiện ích mỏng + thanh chính có menu),
+   phỏng theo bố cục của fit.tdc.edu.vn (cùng tông navy đã khai báo
+   trong style.css, không sao chép logo/asset gốc của website đó).
    ===================================================================== */
 
+/* ---------- Thanh tiện ích mỏng phía trên (liên hệ nhanh) ---------- */
+.top-utility-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 40px;
+  background: #08152e; /* đậm hơn xanh-dam một chút để phân tầng rõ với thanh chính */
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+}
+
+.top-utility-bar .lien-he-nhanh {
+  display: flex;
+  gap: 20px;
+}
+
+.top-utility-bar .lien-he-nhanh a {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.top-utility-bar .lien-he-nhanh a:hover { color: #fff; }
+
+/* ---------- Thanh chính: logo + menu + nút hành động ---------- */
 .public-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 40px;
+  padding: 14px 40px;
   background: var(--xanh-dam);
   color: #fff;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
 .logo-box {
   display: flex;
   align-items: center;
   gap: 14px;
+  text-decoration: none;
 }
 
 .logo-box img {
-  height: 44px;
-  width: 44px;
+  height: 46px;
+  width: 46px;
   object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .logo-text p {
@@ -39,6 +69,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
 .logo-text p:last-child {
@@ -46,9 +77,49 @@
   opacity: 0.8;
 }
 
+/* ---------- Menu ngang chính (Trang chủ / Nộp hồ sơ / Tra cứu) ---------- */
+.public-menu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.public-menu a {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.public-menu a:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.public-menu a.dang-chon {
+  background: #fff;
+  color: var(--xanh-dam);
+}
+
 .public-header .btn {
   background: #fff;
   color: var(--xanh-dam);
+  white-space: nowrap;
+}
+
+/* ---------- Nút mở menu trên mobile ---------- */
+.nut-mo-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
 }
 
 .public-footer {
@@ -79,11 +150,31 @@
   color: var(--xanh-chinh);
 }
 
+@media (max-width: 900px) {
+  .public-menu {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    order: 3;
+  }
+  .public-menu.mo { display: flex; }
+  .public-menu a { text-align: center; }
+  .nut-mo-menu { display: block; }
+  .top-utility-bar { padding: 7px 20px; }
+  .public-header { padding: 14px 20px; }
+}
+
 @media (max-width: 600px) {
   .public-header,
   .public-footer {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  .top-utility-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

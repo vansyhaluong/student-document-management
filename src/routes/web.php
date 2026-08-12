@@ -72,5 +72,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::middleware('role:admin,secretary')->group(function () {
         Route::get('/bao-cao-thong-ke', [ReportController::class, 'index'])->name('bao-cao');
         Route::get('/bao-cao-thong-ke/xuat', [ReportController::class, 'export'])->name('bao-cao.xuat');
+        Route::get('/bao-cao-thong-ke/xuat-pdf', [ReportController::class, 'exportPdf'])->name('bao-cao.xuat-pdf');
     });
 });
