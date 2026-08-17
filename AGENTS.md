@@ -2,138 +2,225 @@
 
 ## Purpose
 
-- This file defines execution rules for agents working in this repository.
-- Keep this file concise and operational.
-- Do not duplicate detailed requirements, architecture, or implementation plans here.
-- Follow the referenced documents for project-specific decisions.
+Operational rules for coding agents in this repository:
 
-## 1. Sources of truth
+`Read task → Inspect relevant code/database → Implement → Test → Report → Stop`
 
-- `docs/REQUIREMENTS.md` decides business rules and acceptance criteria.
-- `docs/ARCHITECTURE.md` decides architecture and technical design.
-- `docs/IMPLEMENTATION_PLAN.md` decides task order, dependencies, phase gates,
-  and Decision Gate status.
-- Read the relevant sections before changing code, schema, configuration, or tests.
-- Do not replace an approved decision with a personal preference.
-- Do not infer a missing business rule or silently resolve an open question.
-- If the documents conflict, stop and report the exact conflicting passages.
-- Ask for a decision instead of choosing which document to follow.
+This is a small Laravel application for internal faculty use. Prioritize correct
+behavior against the existing MariaDB database and successful local execution.
 
-## 2. Task scope
+## Source of Truth
 
-- Work on one task ID at a time unless the user explicitly requests otherwise.
-- Keep every change within the current task's stated output and acceptance criteria.
-- Do not expand scope, perform unrelated refactors, or begin the next task.
-- Do not implement a task whose dependencies are incomplete.
-- Do not implement a task that is blocked by a phase gate or Decision Gate.
-- Do not start P1 until P0-01 through P0-04 have documented evidence of completion.
-- DG-005 blocks all of P9 and production sign-off.
-- A request to inspect, review, or diagnose does not authorize implementation.
-- Stop when the requested task is complete and wait for the next instruction.
+Read the relevant sections before coding:
 
-## 3. Preflight
+1. `docs/REQUIREMENT.md` — business scope and rules.
+2. `docs/ARCHITECHTURE.md` — architecture and technical conventions.
+3. The currently approved real MariaDB schema — actual data model.
+4. `IMPLEMENTATION-PLAN.md` — phase order and task scope.
+5. Existing source code — current conventions and implementation.
 
-- Check the current Git branch.
-- Check `git status` before editing.
-- Read the requirement, architecture, and plan sections relevant to the task.
-- Identify the task ID, dependencies, gates, and acceptance criteria.
-- Verify that the required environment and inputs are available.
-- State the files expected to change before making edits.
-- Compare expected files with the allowed scope.
-- Stop if the working tree contains unexplained out-of-scope changes.
-- Do not overwrite or absorb existing user changes without confirmation.
-- Report a missing dependency or gate as a blocker.
+If a real conflict makes the requested feature impossible, use the STOP rule.
+Do not duplicate or rewrite source-of-truth documents during ordinary coding.
 
-## 4. Backend architecture
+## Current Project
 
-- Use the request path:
-  `HTTP Request → Route/Middleware → Form Request → Controller → Service
-  → Repository → Model`.
-- Controllers must not call Models or the database directly.
-- Controllers should coordinate input and responses, not contain business rules.
-- Form Requests perform validation and authorization for HTTP input.
-- Services own business rules, state transitions, and business transactions.
-- Repositories are the persistence boundary.
-- Services must not call Eloquent or Query Builder directly.
-- Keep transaction boundaries in the owning Service.
-- Keep state-transition enforcement authoritative on the server.
-- Do not create a generic `BaseRepository`.
-- Do not create a generic `CommonService`.
+- Laravel 13, PHP 8.3, Blade, Tailwind CSS 4, Vite 8.
+- MariaDB 10.11 with the approved `doctrack` schema.
+- Session authentication using username/password.
+- PHPUnit 12 and Laravel Pint.
+- No standalone API specification; JSON conventions are in the Requirement and
+  Architecture.
+- Roles are only `ADMIN`, `SECRETARY`, and `EMPLOYEE`; database `staff` maps to
+  `EMPLOYEE`.
+- No email functionality.
 
-## 5. Frontend
+Approved P0-01 business/database decisions are complete. Phase 1 may begin when
+requested.
 
-- Use React, TypeScript, and Inertia for authenticated internal areas.
-- Use Blade for public pages, error pages, and the Inertia shell.
-- Server-side validation and authorization are authoritative.
-- Client-side checks may improve UX but never replace server enforcement.
-- Do not create a JSON API solely to serve Inertia pages.
-- Do not pass raw Models to frontend pages.
-- Use explicit, minimal page props and response allowlists.
-- Do not expose credentials, secrets, internal fields, or sensitive data.
-- Keep business decisions out of React components.
+## Scope Rules
 
-## 6. Database
+- Implement only the requested phase/task; do not continue automatically.
+- Do not invent entities, fields, relationships, roles, statuses, transitions,
+  permissions, or important business rules.
+- Do not add a dependency without approval.
+- Do not modify the database schema unless explicitly requested.
+- Do not add tables, columns, relationships, indexes, or migrations because the
+  code expects a different schema.
+- Do not implement email, attachment, XLSX/PDF, or other out-of-MVP features.
+- Search existing code before creating a class, component, helper, Service,
+  Repository, utility, or abstraction.
+- Reuse suitable code and follow the current layout, naming, style, and
+  dependencies.
+- Do not create generic `BaseRepository`, `CommonService`, or speculative
+  abstractions.
+- Do not perform unrelated refactoring.
 
-- Use MariaDB 10.11 for development, test/CI, and the production target.
-- Treat the MariaDB 10.4 baseline only as an import source.
-- Keep development and test databases separate.
-- Never run destructive test setup against development or production data.
-- Do not substitute SQLite for MariaDB migration or integration behavior.
-- Test constraints, transactions, and locking on MariaDB.
-- Preserve approved constraint, index, foreign-key, and transaction behavior.
-- Follow the session and idempotency decisions in `docs/ARCHITECTURE.md`.
-- Use migrations for schema changes; do not patch production schema manually.
-- Keep real import data outside the repository and CI.
+Git cleanliness, CI/CD readiness, privacy guard status, sanitized schema
+artifacts, production hardening, database-root configuration, and dump placement
+are not implementation gates. Mention relevant pre-existing concerns as
+warnings without expanding task scope.
 
-## 7. Security and data
+## Required Architecture
 
-- Follow the approved Argon2id and password policy.
-- Do not change authentication behavior without an approved requirement.
-- Do not change Public Lookup verification or output rules without approval.
-- Never log passwords or temporary passwords.
-- Never log session cookies, credentials, or security tokens.
-- Never log raw idempotency tokens.
-- Do not commit `.env` files or secrets.
-- Do not commit private SQL, real student data, or private import files.
-- CI may use only sanitized schema and fake fixtures.
-- Keep authorization checks on the server for every protected action.
-- Preserve generic authentication failure messages where required.
+Use this path:
 
-## 8. Testing
+`Route/Middleware → Form Request → Controller → Service → Repository → Model`
 
-- Every business behavior change requires an appropriate test.
-- Claim `PASS` only for a command that was actually run successfully.
-- Do not imply unexecuted checks passed.
-- Test constraints, migrations, transactions, and locking on MariaDB.
-- Add regression coverage for corrected defects.
-- Run the smallest relevant checks during development.
-- Run all task-required quality gates before completion.
-- Run `git diff --check` before reporting completion.
-- Obtain concrete build and test commands from the repository after scaffolding.
-- Do not invent commands that the repository does not define.
-- Report skipped or unavailable checks with the reason.
+- Route/Middleware: routing, authentication, and coarse access checks.
+- Form Request: input validation, authorization, and light normalization.
+- Controller: thin HTTP coordination; calls Service and returns the response.
+- Service: business rules, workflow, orchestration, and transaction boundaries.
+- Repository: all Eloquent/Query Builder access, search, filters, pagination,
+  aggregates, and locks.
+- Model: existing-table mapping, relationships, casts, and fillable/hidden data.
+- Policy/query scope: backend authorization and record visibility.
+- Central exception handling: render consistent HTML/JSON failures.
 
-## 9. Git safety
+Controllers must not query the database, call Models directly, or contain major
+business logic. Blade visibility is UX only; backend authorization is final.
+Use Service transactions for atomic multi-write operations.
 
-- Do not work directly on `main` or `develop`.
-- Do not commit, push, create a PR, merge, or deploy without an explicit request.
-- Do not run commands that destructively reset or clean the working tree.
-- Do not modify, delete, or revert changes outside the current task.
-- Preserve unrelated tracked and untracked files.
-- Stage only files belonging to the current task.
-- Each commit must contain only files belonging to the current task.
-- Inspect the staged diff before committing.
-- Use a concise commit message that describes the task outcome.
+Repository contracts belong in `App\Repositories\Contracts`; Eloquent/Query
+Builder implementations belong in `App\Repositories\Eloquent`.
 
-## 10. Completion report
+## Database Rules
 
-- Report the task ID and implemented scope.
-- List every changed file.
-- Summarize the behavior implemented.
-- List commands and checks that were actually run.
-- Report the result of each executed check.
-- List checks not run and explain why.
-- Report remaining blockers and Decision Gates.
-- Report the final `git status`.
-- Do not declare completion while any exit criterion is unmet.
-- Do not continue into another task after the completion report.
+The currently approved real schema is authoritative. Before implementing a
+database-dependent module:
+
+1. Inspect the actual schema.
+2. Confirm table names.
+3. Confirm columns and datatypes.
+4. Confirm foreign keys, constraints, indexes, triggers, and relationships
+   relevant to the task.
+5. Map Models and Repositories to that schema.
+
+Do not change schema or live data unless the task explicitly authorizes it. If a
+requirement genuinely cannot be implemented with the existing schema, STOP and
+report that specific incompatibility.
+
+Never run destructive database commands without explicit approval. Never print
+credentials or expose passwords, hashes, tokens, session payloads, secrets, or
+personal data. Use the current local `.env`/MariaDB configuration needed for the
+application to connect; do not change credentials unless connection work
+requires it.
+
+## Authentication, API, and UI
+
+- Enforce authentication, active-account checks, roles, and resource scope in
+  the backend.
+- Map `admin`, `secretary`, and `staff` only to the three approved domain roles.
+- Verify existing bcrypt hashes through Laravel's Hash contract.
+- Do not implement email verification or password reset by email.
+- Blade forms use CSRF, redirects, flash messages, and field errors.
+- Do not create a JSON API solely for Blade pages.
+- Real JSON endpoints use standardized success/error/validation/pagination
+  responses and appropriate HTTP status codes.
+- Do not expose stack traces, SQL errors, credentials, or internal server data.
+
+## Implementation Workflow
+
+1. Read the requested task in `IMPLEMENTATION-PLAN.md`.
+2. Read related Requirement and Architecture sections.
+3. Inspect relevant source, schema, configuration, dependencies, and tests.
+4. Implement only the requested scope using the required layers.
+5. Add/update useful tests for business behavior, authorization, validation,
+   transactions, and regressions.
+6. Run applicable checks and manually verify the affected flow when practical.
+7. Report actual results and warnings.
+8. Stop; do not begin the next phase.
+
+## Validation
+
+Focus on whether the changed application behavior works. Use applicable checks:
+
+```powershell
+# Targeted or full Laravel tests
+php artisan test --filter=<TestName>
+composer test
+
+# PHP format check
+vendor\bin\pint.bat --test
+
+# Frontend build
+npm run build
+
+# Diff whitespace check
+git diff --check
+```
+
+Also verify database connectivity and the actual CRUD/business flow when
+relevant. There is no npm lint/type-check script; do not invent one.
+
+Run only applicable checks. Unrelated pre-existing failures may be reported as
+warnings. A working task may be `PASS WITH WARNINGS`. Never claim a command
+passed if it was not run successfully.
+
+## STOP Rule
+
+STOP only when continuing requires one of these:
+
+1. Inventing an important business rule.
+2. Changing the existing database schema without approval.
+3. Adding a dependency without approval.
+4. Introducing a role, status, or workflow not defined by the project.
+5. Making a significant architecture change.
+6. Working around a real Requirement/Architecture/database conflict that makes
+   the requested feature impossible to implement correctly.
+7. Performing destructive database operations.
+
+Do not STOP for unrelated Git state, missing CI/privacy artifacts, optional
+validation failures, production hardening, database-root configuration, or
+other unrelated pre-existing warnings.
+
+When stopping, report:
+
+```text
+ABNORMALITY DETECTED
+
+What was found:
+...
+
+Why it blocks the requested task:
+...
+
+Related files/schema:
+...
+
+Possible options:
+A. ...
+B. ...
+
+Recommended option:
+...
+
+No related change has been executed.
+Please confirm how to proceed.
+```
+
+## Completion Report
+
+```md
+## IMPLEMENTATION RESULT
+
+### Status
+PASS / PASS WITH WARNINGS / BLOCKED
+
+### Implemented
+- ...
+
+### Files Changed
+- ...
+
+### Validation
+- command — result
+
+### Database Changes
+- None / explicitly approved changes
+
+### Warnings
+- ...
+
+### Remaining
+- ...
+```
