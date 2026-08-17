@@ -17,6 +17,7 @@ use App\Repositories\Contracts\UserRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -104,25 +105,39 @@ class StudentDocumentService
      */
     public function publicLookup(string $studentCode): array
     {
-        $student = $this->students->findByCode($studentCode);
-
-        if ($student === null) {
-            return [
-                'studentExists' => false,
-                'lookupResults' => [],
-            ];
-        }
+        $lookup = $this->findPublicDocumentsByStudentCode($studentCode);
 
         return [
-            'studentExists' => true,
-            'lookupResults' => $this->documents->findPublicByStudentCode($student->student_code)
-                ->map(fn (StudentDocument $document): array => [
-                    'document_code' => $document->document_code,
-                    'document_type' => $document->documentType?->name ?? 'Không xác định',
-                    'status' => $document->status->label(),
-                    'submitted_at' => $document->submitted_at->format('d/m/Y'),
-                    'completed_at' => $document->completed_at?->format('d/m/Y'),
-                ])
+            'studentExists' => $lookup['studentExists'],
+            'lookupResults' => $lookup['documents']
+                ->map(fn (StudentDocument $document): array => $this->mapPublicDocumentForWeb($document))
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     student_code: string,
+     *     student_exists: bool,
+     *     documents: array<int, array{
+     *         document_code: string,
+     *         document_type: string,
+     *         status: string,
+     *         status_label: string,
+     *         submitted_at: string,
+     *         completed_at: ?string
+     *     }>
+     * }
+     */
+    public function publicDocumentsForApi(string $studentCode): array
+    {
+        $lookup = $this->findPublicDocumentsByStudentCode($studentCode);
+
+        return [
+            'student_code' => $studentCode,
+            'student_exists' => $lookup['studentExists'],
+            'documents' => $lookup['documents']
+                ->map(fn (StudentDocument $document): array => $this->mapPublicDocumentForApi($document))
                 ->all(),
         ];
     }
@@ -370,6 +385,73 @@ class StudentDocumentService
         }
 
         return $student;
+    }
+
+    /**
+     * @return array{studentExists: bool, documents: Collection<int, StudentDocument>}
+     */
+    private function findPublicDocumentsByStudentCode(string $studentCode): array
+    {
+        $student = $this->students->findByCode($studentCode);
+
+        if ($student === null) {
+            return [
+                'studentExists' => false,
+                'documents' => collect(),
+            ];
+        }
+
+        return [
+            'studentExists' => true,
+            'documents' => $this->documents->findPublicByStudentCode($student->student_code),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     document_code: string,
+     *     document_type: string,
+     *     status: string,
+     *     submitted_at: string,
+     *     completed_at: ?string
+     * }
+     */
+    private function mapPublicDocumentForWeb(StudentDocument $document): array
+    {
+        return [
+            'document_code' => $document->document_code,
+            'document_type' => $this->publicDocumentTypeName($document),
+            'status' => $document->status->label(),
+            'submitted_at' => $document->submitted_at->format('d/m/Y'),
+            'completed_at' => $document->completed_at?->format('d/m/Y'),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     document_code: string,
+     *     document_type: string,
+     *     status: string,
+     *     status_label: string,
+     *     submitted_at: string,
+     *     completed_at: ?string
+     * }
+     */
+    private function mapPublicDocumentForApi(StudentDocument $document): array
+    {
+        return [
+            'document_code' => $document->document_code,
+            'document_type' => $this->publicDocumentTypeName($document),
+            'status' => $document->status->value,
+            'status_label' => $document->status->label(),
+            'submitted_at' => $document->submitted_at->format('Y-m-d'),
+            'completed_at' => $document->completed_at?->format('Y-m-d'),
+        ];
+    }
+
+    private function publicDocumentTypeName(StudentDocument $document): string
+    {
+        return $document->documentType?->name ?? 'Không xác định';
     }
 
     private function assertActiveDocumentType(int $documentTypeId): void

@@ -284,6 +284,9 @@ HTTP status dùng phù hợp: 200, 201, 400, 401, 403, 404, 422, 500. Exception
 được render tập trung; production không trả stack trace, SQL error, server path,
 secret hoặc thông tin nội bộ.
 
+Public JSON API tra cứu hồ sơ theo MSSV cho mobile được mô tả tại
+`docs/PUBLIC-STUDENT-DOCUMENTS-API.md`.
+
 ## 17. Bảo mật và dữ liệu
 
 - Backend kiểm tra authentication, active account và authorization cho mọi

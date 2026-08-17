@@ -320,9 +320,9 @@ không render view, ghi network hoặc chạy query báo cáo trong transaction.
 Blade route nằm trong `routes/web.php` và dùng redirect, flash message,
 validation error bag, CSRF và session.
 
-Không tạo `routes/api.php` nếu chưa có JSON use case được duyệt. Endpoint
-`/api/*` thực tế phải dùng response envelope và pagination metadata trong
-Requirement.
+JSON use case đã duyệt được đăng ký trong `routes/api.php`. Endpoint `/api/*`
+thực tế phải dùng response envelope và pagination metadata trong Requirement.
+Public student document list API: `docs/PUBLIC-STUDENT-DOCUMENTS-API.md`.
 
 Central exception rendering tại `bootstrap/app.php` phân biệt HTML/JSON:
 

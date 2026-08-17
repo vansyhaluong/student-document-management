@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API hồ sơ sinh viên</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #0D47A1;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #083b87;
+        }
+
+        .message {
+            margin: 16px 0;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .success {
+            background: #ecfdf5;
+            color: #166534;
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .document {
+            margin-top: 12px;
+            padding: 16px;
+            border: 1px solid #dbe3ef;
+            border-radius: 10px;
+            background: #fafcff;
+        }
+
+        .document p {
+            margin: 6px 0;
+        }
+
+        pre {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>Test API hồ sơ sinh viên</h1>
+
+    <div class="form-group">
+        <input
+            type="text"
+            id="studentCode"
+            placeholder="Nhập MSSV, ví dụ 24211tt3936"
+        >
+
+        <button onclick="lookupDocuments()">
+            Tra cứu
+        </button>
+    </div>
+
+    <div id="message"></div>
+
+    <div id="documents"></div>
+
+    <h3>JSON trả về</h3>
+    <pre id="jsonResult">Chưa có dữ liệu</pre>
+</div>
+
+<script>
+    async function lookupDocuments() {
+        const studentCode =
+            document.getElementById('studentCode').value.trim();
+
+        const messageElement =
+            document.getElementById('message');
+
+        const documentsElement =
+            document.getElementById('documents');
+
+        const jsonElement =
+            document.getElementById('jsonResult');
+
+        messageElement.innerHTML = '';
+        documentsElement.innerHTML = '';
+        jsonElement.textContent = 'Đang tải...';
+
+        if (!studentCode) {
+            messageElement.innerHTML =
+                '<div class="message error">Vui lòng nhập MSSV.</div>';
+
+            jsonElement.textContent = 'Chưa gọi API.';
+            return;
+        }
+
+        const apiUrl =
+            `http://127.0.0.1:8000/api/students/${encodeURIComponent(studentCode)}/documents`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            jsonElement.textContent =
+                JSON.stringify(result, null, 2);
+
+            if (!response.ok) {
+                messageElement.innerHTML =
+                    `<div class="message error">
+                        API trả về lỗi HTTP ${response.status}
+                    </div>`;
+                return;
+            }
+
+            const data = result.data;
+
+            if (!data.student_exists) {
+                messageElement.innerHTML =
+                    '<div class="message error">Không tìm thấy sinh viên.</div>';
+                return;
+            }
+
+            if (!data.documents || data.documents.length === 0) {
+                messageElement.innerHTML =
+                    '<div class="message success">Sinh viên tồn tại nhưng chưa có hồ sơ.</div>';
+                return;
+            }
+
+            messageElement.innerHTML =
+                `<div class="message success">
+                    Tìm thấy ${data.documents.length} hồ sơ.
+                </div>`;
+
+            data.documents.forEach(documentItem => {
+                const html = `
+                    <div class="document">
+                        <p>
+                            <strong>Mã hồ sơ:</strong>
+                            ${documentItem.document_code}
+                        </p>
+
+                        <p>
+                            <strong>Loại hồ sơ:</strong>
+                            ${documentItem.document_type}
+                        </p>
+
+                        <p>
+                            <strong>Trạng thái:</strong>
+                            ${documentItem.status_label}
+                            (${documentItem.status})
+                        </p>
+
+                        <p>
+                            <strong>Ngày nộp:</strong>
+                            ${documentItem.submitted_at ?? '-'}
+                        </p>
+
+                        <p>
+                            <strong>Ngày hoàn thành:</strong>
+                            ${documentItem.completed_at ?? '-'}
+                        </p>
+                    </div>
+                `;
+
+                documentsElement.insertAdjacentHTML(
+                    'beforeend',
+                    html
+                );
+            });
+
+        } catch (error) {
+            messageElement.innerHTML =
+                `<div class="message error">
+                    Không gọi được API: ${error.message}
+                </div>`;
+
+            jsonElement.textContent = error.stack;
+        }
+    }
+</script>
+
+</body>
+</html>
