@@ -7,13 +7,15 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_public_homepage_is_available_to_guests(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertOk()
+            ->assertSee('Tra cứu và nộp hồ sơ sinh viên')
+            ->assertSee('Tra cứu hồ sơ')
+            ->assertSee('Mã số sinh viên (MSSV)')
+            ->assertSee('Nộp hồ sơ')
+            ->assertSee(route('login'), escape: false);
     }
 }
