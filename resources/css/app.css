@@ -265,34 +265,23 @@
     }
 
     .public-hero {
-        @apply relative isolate overflow-hidden border-b border-portal-200;
-        background:
-            radial-gradient(circle at 88% 12%, rgb(13 71 161 / 10%), transparent 30%),
-            linear-gradient(180deg, #e3f2fd 0%, #f8fbff 78%);
+        @apply relative isolate overflow-hidden border-b border-portal-200 bg-portal-100;
     }
 
     .public-hero-inner {
-        @apply grid items-center gap-8 py-10 sm:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(17rem,0.85fr)] lg:gap-12 lg:py-14;
+        @apply grid gap-5 py-5 sm:py-6;
     }
 
-    .public-hero-copy {
-        @apply min-w-0;
+    .public-hero-banner {
+        @apply block w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-portal-600;
+    }
+
+    .public-hero-banner img {
+        @apply block h-auto w-full object-contain object-center;
     }
 
     .public-eyebrow {
         @apply text-xs font-semibold tracking-[0.16em] text-portal-600 uppercase;
-    }
-
-    .public-hero-title {
-        @apply mt-3 text-[1.85rem] leading-tight font-bold tracking-tight text-portal-ink sm:text-4xl lg:text-[2.4rem];
-    }
-
-    .public-hero-description {
-        @apply mt-4 max-w-xl text-sm leading-7 text-portal-muted sm:text-base;
-    }
-
-    .public-hero-ctas {
-        @apply mt-6 flex flex-wrap items-center gap-3;
     }
 
     .public-home .btn-primary {
@@ -304,7 +293,7 @@
     }
 
     .public-hero-actions {
-        @apply grid gap-3;
+        @apply grid gap-3 sm:grid-cols-2;
     }
 
     .public-hero-action {
@@ -444,23 +433,59 @@
     }
 
     .public-process {
-        @apply border-t border-portal-200 bg-white py-10 sm:py-12;
+        @apply border-t border-portal-200 bg-[#F4F8FC] py-12 sm:py-14 lg:py-16;
     }
 
-    .public-process-grid {
-        @apply mt-7 grid gap-4 sm:grid-cols-3;
+    .public-process .public-process-inner {
+        @apply max-w-7xl;
+    }
+
+    .public-process-heading {
+        @apply mx-auto max-w-2xl text-center;
+    }
+
+    .public-process-eyebrow {
+        @apply text-xs font-semibold tracking-[0.16em] text-portal-600 uppercase;
+    }
+
+    .public-process-title {
+        @apply mt-3 text-[1.65rem] leading-tight font-bold tracking-tight text-portal-ink sm:text-[1.85rem];
+    }
+
+    .public-process-steps {
+        @apply mt-10 grid grid-cols-1 gap-y-8 sm:mt-12 sm:grid-cols-3 sm:gap-x-0 sm:gap-y-0;
     }
 
     .public-process-step {
-        @apply rounded-2xl border border-portal-200 bg-portal-50 p-5;
+        @apply grid grid-cols-[3rem_minmax(0,1fr)] items-start gap-x-4 sm:grid-cols-1 sm:justify-items-center sm:gap-x-0 sm:text-center;
+    }
+
+    .public-process-rail {
+        @apply relative flex w-12 shrink-0 items-start justify-center self-stretch sm:h-12 sm:w-full sm:items-center sm:self-auto;
     }
 
     .public-process-number {
-        @apply grid size-8 place-items-center rounded-full bg-portal-600 text-sm font-bold text-white;
+        @apply relative z-10 grid size-12 place-items-center rounded-full bg-portal-600 text-base font-bold text-white ring-4 ring-[#F4F8FC];
+    }
+
+    .public-process-step:not(:last-child) .public-process-rail::after {
+        @apply absolute top-12 bottom-[-2rem] left-1/2 z-0 w-0.5 -translate-x-1/2 bg-[#BFDBFE] content-[''] sm:top-1/2 sm:right-0 sm:bottom-auto sm:left-1/2 sm:h-0.5 sm:w-full sm:translate-x-0 sm:translate-y-[-50%];
+    }
+
+    .public-process-copy {
+        @apply min-w-0 pt-0.5 sm:mt-5 sm:max-w-[16.5rem] sm:pt-0;
+    }
+
+    .public-process-icon {
+        @apply mb-2 inline-flex size-5 text-portal-600;
+    }
+
+    .public-process-icon svg {
+        @apply size-5;
     }
 
     .public-process-step h3 {
-        @apply mt-4 text-sm font-semibold text-portal-ink;
+        @apply text-base leading-6 font-semibold text-portal-ink sm:text-lg;
     }
 
     .public-process-step p {
@@ -468,15 +493,104 @@
     }
 
     .public-footer {
-        @apply bg-portal-ink text-sm text-white;
+        @apply bg-[#003b7a] text-sm text-white;
+        background-image: radial-gradient(circle at 88% 18%, rgb(255 255 255 / 7%), transparent 32%);
     }
 
-    .public-footer-inner {
-        @apply flex flex-col gap-3 py-7 sm:flex-row sm:items-end sm:justify-between;
+    .public-footer-layout {
+        @apply grid gap-10 py-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(15rem,0.75fr)] lg:items-start lg:gap-12 lg:py-12;
     }
 
-    .public-footer-muted {
-        @apply text-slate-300;
+    .public-footer-main {
+        @apply min-w-0;
+    }
+
+    .public-footer-brand {
+        @apply flex flex-col items-start gap-4 sm:flex-row sm:items-center;
+    }
+
+    .public-footer-logo {
+        @apply inline-flex shrink-0 rounded-lg bg-white px-3 py-2;
+    }
+
+    .public-footer-logo img {
+        @apply h-10 w-auto max-w-[15.5rem] object-contain object-left sm:h-11;
+    }
+
+    .public-footer-school {
+        @apply text-[0.95rem] font-semibold tracking-wide text-white uppercase;
+    }
+
+    .public-footer-faculty {
+        @apply mt-1 text-lg font-bold tracking-tight text-white uppercase sm:text-xl;
+    }
+
+    .public-footer-address {
+        @apply mt-1.5 text-sm leading-6 text-white/75;
+    }
+
+    .public-footer-columns {
+        @apply mt-8 grid gap-8 sm:grid-cols-2;
+    }
+
+    .public-footer-heading {
+        @apply mb-4 text-base font-bold text-white;
+    }
+
+    .public-footer-list {
+        @apply text-sm leading-6 text-white/75;
+    }
+
+    .public-footer-list li {
+        @apply border-b border-white/15;
+    }
+
+    .public-footer-list a {
+        @apply block py-2.5 text-white/75 transition hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+    }
+
+    .public-footer-aside {
+        @apply min-w-0 lg:pt-1;
+    }
+
+    .public-footer-contact {
+        @apply space-y-3 text-sm leading-6;
+    }
+
+    .public-footer-contact li {
+        @apply flex items-start gap-2.5;
+    }
+
+    .public-footer-contact svg {
+        @apply mt-0.5 size-4 shrink-0 text-white/75;
+    }
+
+    .public-footer-contact a {
+        @apply rounded-sm text-white/75 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+    }
+
+    .public-footer-social {
+        @apply mt-6 flex flex-wrap items-center gap-3;
+    }
+
+    .public-footer-social a {
+        @apply grid size-10 place-items-center rounded-lg bg-white text-[#003b7a] shadow-sm transition hover:scale-105 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+    }
+
+    .public-footer-social svg {
+        @apply size-5;
+    }
+
+    .public-footer-bottom {
+        @apply border-t border-white/18 bg-[#002a58] py-4 text-xs leading-5 text-white/75 sm:text-sm;
+    }
+
+    .public-footer-bottom .public-footer-inner {
+        @apply flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between;
+    }
+
+    .public-footer-bottom a {
+        @apply rounded-sm text-white/80 transition hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
     }
 }
 

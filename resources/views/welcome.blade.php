@@ -10,10 +10,10 @@
                 <span class="public-logo-frame">
                     <img src="{{ asset('images/tdc-logo.png') }}" alt="Logo Khoa Công nghệ Thông tin" class="public-logo">
                 </span>
-                <span class="public-brand-text">
+                <!-- <span class="public-brand-text">
                     <span class="public-brand-faculty">Khoa Công nghệ Thông tin</span>
                     <span class="public-brand-system">Hệ thống quản lý hồ sơ sinh viên</span>
-                </span>
+                </span> -->
             </a>
 
             <nav class="public-nav" aria-label="Điều hướng trang chủ">
@@ -34,22 +34,13 @@
 
     <main class="flex-1">
         <section class="public-hero" aria-labelledby="public-home-title">
-            <div class="public-hero-inner">
-                <div class="public-hero-copy">
-                    <p class="public-eyebrow">Cổng dịch vụ sinh viên</p>
-                    <h1 id="public-home-title" class="public-hero-title">Tra cứu và nộp hồ sơ sinh viên</h1>
-                    <p class="public-hero-description">Theo dõi trạng thái hồ sơ đã nộp hoặc gửi hồ sơ mới đến Khoa Công nghệ Thông tin. Thao tác trực tuyến, không cần đăng nhập.</p>
-                    <div class="public-hero-ctas">
-                        <a href="#lookup" class="btn-primary">
-                            <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
-                            </svg>
-                            Tra cứu ngay
-                        </a>
-                        <a href="#submission" class="btn-secondary">Nộp hồ sơ</a>
-                    </div>
-                </div>
+            <h1 id="public-home-title" class="sr-only">Tra cứu và nộp hồ sơ sinh viên</h1>
 
+            <a href="#services" class="public-hero-banner">
+                <img src="{{ asset('images/banner-tdc.png') }}" alt="Cổng thông tin dành cho sinh viên — Tra cứu và nộp hồ sơ sinh viên. Hỗ trợ theo dõi trạng thái và gửi hồ sơ trực tuyến đến Khoa Công nghệ Thông tin." width="1672" height="941">
+            </a>
+
+            <!-- <div class="public-hero-inner">
                 <div class="public-hero-actions" aria-label="Chọn thao tác nhanh">
                     <a href="#lookup" class="public-hero-action group">
                         <span class="public-hero-action-icon" aria-hidden="true">
@@ -81,7 +72,7 @@
                         </svg>
                     </a>
                 </div>
-            </div>
+            </div> -->
         </section>
 
         <section id="services" class="public-services" aria-labelledby="student-services-title">
@@ -291,23 +282,53 @@
 
         <section class="public-process" aria-labelledby="process-title">
             <div class="public-process-inner">
-                <p class="page-eyebrow">Quy trình thực hiện</p>
-                <h2 id="process-title" class="public-section-title">Ba bước để theo dõi hồ sơ</h2>
-                <ol class="public-process-grid">
+                <header class="public-process-heading">
+                    <p class="public-process-eyebrow">Quy trình thực hiện</p>
+                    <h2 id="process-title" class="public-process-title">Theo dõi hồ sơ chỉ với 3 bước</h2>
+                </header>
+
+                <ol class="public-process-steps">
                     <li class="public-process-step">
-                        <span class="public-process-number" aria-hidden="true">1</span>
-                        <h3>Nhập MSSV</h3>
-                        <p>Dùng đúng mã số sinh viên được nhà trường cấp.</p>
+                        <div class="public-process-rail">
+                            <span class="public-process-number">1</span>
+                        </div>
+                        <div class="public-process-copy">
+                            <span class="public-process-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                </svg>
+                            </span>
+                            <h3>Nhập MSSV</h3>
+                            <p>Nhập mã số sinh viên do nhà trường cấp.</p>
+                        </div>
                     </li>
                     <li class="public-process-step">
-                        <span class="public-process-number" aria-hidden="true">2</span>
-                        <h3>Tra cứu hoặc nộp hồ sơ</h3>
-                        <p>Xem hồ sơ đã có, hoặc chọn loại hồ sơ còn hiệu lực để gửi mới.</p>
+                        <div class="public-process-rail">
+                            <span class="public-process-number">2</span>
+                        </div>
+                        <div class="public-process-copy">
+                            <span class="public-process-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0ZM8.25 7.5h7.5M8.25 11.25h4.5" />
+                                </svg>
+                            </span>
+                            <h3>Tra cứu hoặc nộp hồ sơ</h3>
+                            <p>Xem hồ sơ hiện có hoặc chọn loại hồ sơ cần gửi.</p>
+                        </div>
                     </li>
                     <li class="public-process-step">
-                        <span class="public-process-number" aria-hidden="true">3</span>
-                        <h3>Theo dõi trạng thái xử lý</h3>
-                        <p>Dùng MSSV hoặc mã hồ sơ để kiểm tra tiến độ tại Khoa.</p>
+                        <div class="public-process-rail">
+                            <span class="public-process-number">3</span>
+                        </div>
+                        <div class="public-process-copy">
+                            <span class="public-process-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </span>
+                            <h3>Theo dõi trạng thái</h3>
+                            <p>Kiểm tra tiến độ xử lý và kết quả hồ sơ.</p>
+                        </div>
                     </li>
                 </ol>
             </div>
@@ -316,11 +337,85 @@
 
     <footer class="public-footer">
         <div class="public-footer-inner">
-            <div>
-                <p class="font-semibold text-white">Khoa Công nghệ Thông tin</p>
-                <p class="public-footer-muted mt-1">Cổng dịch vụ tra cứu và nộp hồ sơ sinh viên.</p>
+            <div class="public-footer-layout">
+                <div class="public-footer-main">
+                    <div class="public-footer-brand">
+                        <span class="public-footer-logo">
+                            <img src="{{ asset('images/tdc-logo.png') }}" alt="Logo Khoa Công nghệ Thông tin, Trường Cao đẳng Công nghệ Thủ Đức" width="260" height="56">
+                        </span>
+                        <div>
+                            <p class="public-footer-school">Trường Cao đẳng Công nghệ Thủ Đức</p>
+                            <p class="public-footer-faculty">Khoa Công nghệ Thông tin</p>
+                            <p class="public-footer-address">53 Võ Văn Ngân, Phường Thủ Đức, Thành phố Hồ Chí Minh</p>
+                        </div>
+                    </div>
+
+                    <div class="public-footer-columns">
+                        <div>
+                            <h2 class="public-footer-heading">Thông tin chung</h2>
+                            <ul class="public-footer-list">
+                                <li><a href="https://fit.tdc.edu.vn/gioi-thieu" target="_blank" rel="noopener noreferrer">Giới thiệu</a></li>
+                                <li><a href="https://fit.tdc.edu.vn/lich-truc-khoa" target="_blank" rel="noopener noreferrer">Lịch trực Khoa</a></li>
+                                <li><a href="https://fit.tdc.edu.vn/thoi-khoa-bieu" target="_blank" rel="noopener noreferrer">Thời khóa biểu</a></li>
+                                <li><a href="https://tdc.edu.vn/" target="_blank" rel="noopener noreferrer">Trường Cao đẳng Công nghệ Thủ Đức</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h2 class="public-footer-heading">Về chúng tôi</h2>
+                            <ul class="public-footer-list">
+                                <li><a href="https://fit.tdc.edu.vn/lien-he" target="_blank" rel="noopener noreferrer">Liên hệ</a></li>
+                                <li><a href="https://fit.tdc.edu.vn/co-so-vat-chat" target="_blank" rel="noopener noreferrer">Cơ sở vật chất</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="public-footer-aside">
+                    <h2 class="public-footer-heading">Liên hệ</h2>
+                    <ul class="public-footer-contact">
+                        <li>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                            </svg>
+                            <a href="tel:+842822158642">(028) 2215 8642</a>
+                        </li>
+                        <li>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.71 3 17.25m0 0 3.75 3.75M3 17.25h13.5A4.5 4.5 0 0 0 21 12.75v-1.5A4.5 4.5 0 0 0 16.5 6.75H9.75" />
+                            </svg>
+                            <a href="tel:+842838962474">(028) 3896 2474</a>
+                        </li>
+                        <li>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                            </svg>
+                            <a href="mailto:fit@tdc.edu.vn">fit@tdc.edu.vn</a>
+                        </li>
+                    </ul>
+
+                    <div class="public-footer-social">
+                        <a href="https://www.facebook.com/tdc.fit/" target="_blank" rel="noopener noreferrer" aria-label="Facebook Khoa Công nghệ Thông tin">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 8.25H16.5V5.5h-2c-2.3 0-3.75 1.4-3.75 3.85v1.9H8.5v2.7h2.25V20h2.85v-6.05H16.1l.45-2.7h-2.95V9.55c0-.8.35-1.3 1.4-1.3Z" /></svg>
+                        </a>
+                        <a href="https://www.tiktok.com/@fittdc" target="_blank" rel="noopener noreferrer" aria-label="TikTok Khoa Công nghệ Thông tin">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M14.2 4c.3 1.7 1.4 3.1 3 3.8V10c-1.3 0-2.5-.4-3.5-1.1v5.3c0 2.9-2.4 5.3-5.4 5.3A5.35 5.35 0 0 1 4.8 16c.7 1 1.9 1.7 3.2 1.7 2.1 0 3.8-1.7 3.8-3.8V4h2.4Z" /></svg>
+                        </a>
+                        <a href="https://www.youtube.com/fit-tdc" target="_blank" rel="noopener noreferrer" aria-label="YouTube Khoa Công nghệ Thông tin">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.9 4.8 12 4.8 12 4.8s-5.9 0-7.6.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 7.6.4 7.6.4s5.9 0 7.6-.4a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8ZM10.2 15.2V8.8L15.6 12l-5.4 3.2Z" /></svg>
+                        </a>
+                        <a href="https://vn.linkedin.com/school/fit-tdc/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Khoa Công nghệ Thông tin">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 9.3H4V20h2.5V9.3ZM5.2 4A1.5 1.5 0 1 0 5.2 7a1.5 1.5 0 0 0 0-3ZM20 20h-2.5v-5.2c0-1.7-.7-2.3-1.7-2.3s-1.9.8-1.9 2.4V20H11.4V9.3h2.4v1.5c.5-.9 1.6-1.8 3.3-1.8 2.3 0 2.9 1.5 2.9 4.2V20Z" /></svg>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <p class="public-footer-muted">© {{ date('Y') }} Khoa Công nghệ Thông tin</p>
+        </div>
+
+        <div class="public-footer-bottom">
+            <div class="public-footer-inner">
+                <p>© 2026 <a href="https://fit.tdc.edu.vn/" target="_blank" rel="noopener noreferrer">Khoa Công nghệ Thông tin | Cao đẳng Công nghệ Thủ Đức | FIT - TDC</a></p>
+                <p>All Rights Reserved.</p>
+            </div>
         </div>
     </footer>
 </div>
