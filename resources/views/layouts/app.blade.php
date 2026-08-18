@@ -85,6 +85,14 @@
                             </a>
                         @endcan
                     </div>
+
+                    <p class="mt-6 px-3 text-[0.68rem] font-semibold tracking-[0.14em] text-blue-200/55 uppercase">Cổng công khai</p>
+                    <div class="mt-2 space-y-1.5">
+                        <a href="{{ route('home') }}" class="nav-item">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" /></svg>
+                            <span>Về trang chủ</span>
+                        </a>
+                    </div>
                 </nav>
 
                 <div class="border-t border-white/10 p-4">

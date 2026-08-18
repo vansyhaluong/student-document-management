@@ -18,8 +18,7 @@
 
             <nav class="public-nav" aria-label="Điều hướng trang chủ">
                 <a href="{{ route('home') }}" class="public-nav-link public-nav-link-active" aria-current="page">Trang chủ</a>
-                <a href="#lookup" class="public-nav-link">Tra cứu hồ sơ</a>
-                <a href="#submission" class="public-nav-link">Nộp hồ sơ</a>
+                <a href="#huong-dan" class="public-nav-link">Hướng dẫn</a>
             </nav>
 
             <a href="{{ route('login') }}" class="public-login-link">
@@ -138,15 +137,30 @@
                             <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                             </svg>
-                            <p>Sinh viên chưa có hồ sơ nào trong hệ thống.</p>
+                            <p>
+                                Sinh viên
+                                @if(! empty($lookupStudentName))
+                                    <span class="font-semibold">{{ $lookupStudentName }}</span>
+                                @endif
+                                chưa có hồ sơ nào trong hệ thống.
+                            </p>
                         </div>
                         @else
-                        <div class="public-result-list mt-5" role="status">
+                        <div class="public-result-list mt-5">
                             <div class="public-result-list-head">
-                                <p class="text-sm font-semibold text-portal-ink">Danh sách hồ sơ</p>
-                                <p class="mt-0.5 text-xs text-portal-muted">MSSV: <span class="font-semibold text-portal-ink">{{ $lookupStudentCode }}</span> · {{ count($lookupResults) }} hồ sơ</p>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-portal-ink">Kết quả tra cứu</p>
+                                    <p class="mt-0.5 text-xs text-portal-muted">
+                                        @if(! empty($lookupStudentName))
+                                            <span class="font-semibold text-portal-ink">{{ $lookupStudentName }}</span>
+                                            ·
+                                        @endif
+                                        MSSV: <span class="font-semibold text-portal-ink">{{ $lookupStudentCode }}</span>
+                                    </p>
+                                </div>
+                                <span class="shrink-0 text-sm text-portal-muted">{{ count($lookupResults) }} hồ sơ</span>
                             </div>
-                            <div class="divide-y divide-portal-200">
+                            <div class="public-result-scroll divide-y divide-portal-200" role="status" tabindex="0" aria-label="Danh sách kết quả tra cứu hồ sơ">
                                 @foreach($lookupResults as $result)
                                 <dl class="public-result-item">
                                     <div>
@@ -280,7 +294,7 @@
             </div>
         </section>
 
-        <section class="public-process" aria-labelledby="process-title">
+        <section id="huong-dan" class="public-process" aria-labelledby="process-title">
             <div class="public-process-inner">
                 <header class="public-process-heading">
                     <p class="public-process-eyebrow">Quy trình thực hiện</p>

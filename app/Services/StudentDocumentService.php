@@ -95,7 +95,7 @@ class StudentDocumentService
     }
 
     /**
-     * @return array{studentExists: bool, lookupResults: array<int, array{
+     * @return array{studentExists: bool, lookupStudentName: ?string, lookupResults: array<int, array{
      *     document_code: string,
      *     document_type: string,
      *     status: string,
@@ -109,6 +109,7 @@ class StudentDocumentService
 
         return [
             'studentExists' => $lookup['studentExists'],
+            'lookupStudentName' => $lookup['studentName'],
             'lookupResults' => $lookup['documents']
                 ->map(fn (StudentDocument $document): array => $this->mapPublicDocumentForWeb($document))
                 ->all(),
@@ -388,7 +389,7 @@ class StudentDocumentService
     }
 
     /**
-     * @return array{studentExists: bool, documents: Collection<int, StudentDocument>}
+     * @return array{studentExists: bool, studentName: ?string, documents: Collection<int, StudentDocument>}
      */
     private function findPublicDocumentsByStudentCode(string $studentCode): array
     {
@@ -397,12 +398,14 @@ class StudentDocumentService
         if ($student === null) {
             return [
                 'studentExists' => false,
+                'studentName' => null,
                 'documents' => collect(),
             ];
         }
 
         return [
             'studentExists' => true,
+            'studentName' => $student->full_name,
             'documents' => $this->documents->findPublicByStudentCode($student->student_code),
         ];
     }
