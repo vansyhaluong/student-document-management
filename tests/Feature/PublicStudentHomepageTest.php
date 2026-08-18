@@ -33,7 +33,7 @@ class PublicStudentHomepageTest extends TestCase
     public function test_public_lookup_by_student_code_returns_all_documents_with_only_allowlisted_fields(): void
     {
         $staff = $this->createUser('lookup.staff', 'NỘI BỘ KHÔNG ĐƯỢC HIỂN THỊ');
-        $student = $this->createStudent('SV-PUBLIC-LOOKUP', 'SINH VIÊN KHÔNG ĐƯỢC HIỂN THỊ');
+        $student = $this->createStudent('SV-PUBLIC-LOOKUP', 'Trần Thị');
         $type = $this->createType('PUBLIC-LOOKUP', 'Giấy xác nhận sinh viên');
         $first = StudentDocument::query()->create([
             'document_code' => 'HS2608000001',
@@ -78,8 +78,8 @@ class PublicStudentHomepageTest extends TestCase
             ->assertSee('Hoàn tất')
             ->assertSee('10/08/2026')
             ->assertSee('12/08/2026')
+            ->assertSee($student->full_name)
             ->assertDontSee($staff->full_name)
-            ->assertDontSee($student->last_name)
             ->assertDontSee($first->note);
     }
 
@@ -94,7 +94,8 @@ class PublicStudentHomepageTest extends TestCase
         $this->post(route('public.documents.lookup'), [
             'student_code' => $student->student_code,
         ])->assertOk()
-            ->assertSee('Sinh viên chưa có hồ sơ nào trong hệ thống');
+            ->assertSee($student->full_name)
+            ->assertSee('chưa có hồ sơ nào trong hệ thống');
 
         $this->from(route('home'))->post(route('public.documents.lookup'), [
             'student_code' => '   ',
