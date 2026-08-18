@@ -6,14 +6,14 @@
 <div class="public-home">
     <header class="public-navbar">
         <div class="public-navbar-inner">
-            <a href="{{ route('home') }}" class="public-brand" aria-label="Trang chủ Hệ thống quản lý hồ sơ sinh viên">
+            <a href="{{ route('home') }}" class="public-brand" aria-label="Trang chủ Khoa Công nghệ Thông tin">
                 <span class="public-logo-frame">
-                    <img src="{{ asset('images/tdc-logo.png') }}" alt="Logo Khoa Công nghệ Thông tin" class="public-logo">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo Khoa Công nghệ Thông tin" class="public-logo" width="88" height="88">
                 </span>
-                <!-- <span class="public-brand-text">
+                <span class="public-brand-text">
                     <span class="public-brand-faculty">Khoa Công nghệ Thông tin</span>
-                    <span class="public-brand-system">Hệ thống quản lý hồ sơ sinh viên</span>
-                </span> -->
+                    <span class="public-brand-system">Cao đẳng Công nghệ Thủ Đức</span>
+                </span>
             </a>
 
             <nav class="public-nav" aria-label="Điều hướng trang chủ">
@@ -341,7 +341,7 @@
                 <div class="public-footer-main">
                     <div class="public-footer-brand">
                         <span class="public-footer-logo">
-                            <img src="{{ asset('images/tdc-logo.png') }}" alt="Logo Khoa Công nghệ Thông tin, Trường Cao đẳng Công nghệ Thủ Đức" width="260" height="56">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="Logo Khoa Công nghệ Thông tin, Trường Cao đẳng Công nghệ Thủ Đức" width="88" height="88">
                         </span>
                         <div>
                             <p class="public-footer-school">Trường Cao đẳng Công nghệ Thủ Đức</p>
