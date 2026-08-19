@@ -29,6 +29,7 @@ _ide_helper.php
 # Private database and student data
 *.sql
 !/database/schema/student_document_management_schema.sql
+!/docker/mariadb/*.sql
 *.csv
 /database/private-imports/
 /database/private-data/

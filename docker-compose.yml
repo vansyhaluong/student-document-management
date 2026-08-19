@@ -1,0 +1,81 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    container_name: sdm-app
+    restart: unless-stopped
+    environment:
+      APP_NAME: "Quan ly ho so sinh vien"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:JmbvCc+xAXdZC9/CBrQtjXBu+YGn1P+iXwq92oSs+M0=
+      APP_URL: http://localhost:8000
+      APP_TIMEZONE: Asia/Ho_Chi_Minh
+      APP_LOCALE: vi
+      APP_FALLBACK_LOCALE: vi
+      LOG_CHANNEL: stack
+      LOG_LEVEL: debug
+      DB_CONNECTION: mariadb
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: student_document_management
+      DB_USERNAME: app
+      DB_PASSWORD: secret
+      DB_TIMEZONE: "+00:00"
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: 120
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: log
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - sdm
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    container_name: sdm-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    depends_on:
+      - app
+    networks:
+      - sdm
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: sdm-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: student_document_management
+      MARIADB_USER: app
+      MARIADB_PASSWORD: secret
+      MARIADB_ROOT_PASSWORD: secret-root
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./database/schema/student_document_management_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./docker/mariadb/02-demo-catalog.sql:/docker-entrypoint-initdb.d/02-demo-catalog.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - sdm
+
+networks:
+  sdm:
+    driver: bridge
+
+volumes:
+  mariadb_data:
