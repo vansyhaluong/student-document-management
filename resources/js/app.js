@@ -65,6 +65,57 @@ document.querySelectorAll('[data-status-form]').forEach((form) => {
     syncInvalidReason();
 });
 
+const publicNav = document.querySelector('.public-nav');
+const publicGuideSection = document.querySelector('#huong-dan');
+
+if (publicNav) {
+    const publicNavLinks = publicNav.querySelectorAll('[data-public-nav]');
+
+    const setPublicNavActive = (target) => {
+        publicNavLinks.forEach((link) => {
+            const isActive = link.getAttribute('data-public-nav') === target;
+            link.classList.toggle('public-nav-link-active', isActive);
+
+            if (isActive) {
+                link.setAttribute('aria-current', 'page');
+            } else {
+                link.removeAttribute('aria-current');
+            }
+        });
+    };
+
+    const syncPublicNavFromLocation = () => {
+        setPublicNavActive(window.location.hash === '#huong-dan' ? 'guide' : 'home');
+    };
+
+    syncPublicNavFromLocation();
+    window.addEventListener('hashchange', syncPublicNavFromLocation);
+
+    if (publicGuideSection && 'IntersectionObserver' in window) {
+        const guideObserver = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+
+            if (!entry) {
+                return;
+            }
+
+            if (entry.isIntersecting) {
+                setPublicNavActive('guide');
+                return;
+            }
+
+            if (window.scrollY + 80 < publicGuideSection.offsetTop) {
+                setPublicNavActive('home');
+            }
+        }, {
+            rootMargin: '-25% 0px -55% 0px',
+            threshold: 0.1,
+        });
+
+        guideObserver.observe(publicGuideSection);
+    }
+}
+
 document.querySelector('[data-copy-document-code]')?.addEventListener('click', async () => {
     const code = document.querySelector('[data-public-document-code]')?.textContent?.trim();
     const status = document.querySelector('[data-copy-status]');

@@ -45,7 +45,6 @@
             'hex' => '#94a3b8',
         ],
     ];
-    $kpiStatuses = $summary['statusOverview']->take(3);
     $donutRadius = 56;
     $donutCircumference = 2 * M_PI * $donutRadius;
     $donutOffset = 0;
@@ -67,6 +66,25 @@
     }
 
     $typeMax = max(1, (int) $summary['byType']->max('total'));
+    $statusRows = $summary['statusOverview']->map(function (array $item) use ($summary, $statusThemes): array {
+        $status = $item['status'];
+
+        return [
+            'status' => $status,
+            'total' => $item['total'],
+            'percent' => $summary['total'] > 0 ? (int) round(($item['total'] / $summary['total']) * 100) : 0,
+            'hex' => $statusThemes[$status->value]['hex'],
+            'card' => $statusThemes[$status->value]['card'],
+        ];
+    });
+    $kpiStatuses = $statusRows->take(3);
+    $typeRows = $summary['byType']->map(function ($item) use ($typeMax): array {
+        return [
+            'name' => $item->document_type_name,
+            'total' => $item->total,
+            'height' => ((int) round(($item->total / $typeMax) * 100)).'%',
+        ];
+    });
 @endphp
 <div class="mx-auto max-w-7xl">
     <section class="dashboard-hero">
@@ -94,7 +112,7 @@
             <p class="mt-2 text-sm text-slate-500">Trong phạm vi được xem</p>
         </article>
         @foreach ($kpiStatuses as $item)
-        <article class="dashboard-kpi {{ $statusThemes[$item['status']->value]['card'] }}">
+        <article @class(['dashboard-kpi', $item['card']])>
             <x-status-badge :status="$item['status']" />
             <p class="mt-3 text-3xl font-semibold tracking-tight text-ink-950">{{ number_format($item['total']) }}</p>
             <p class="mt-2 text-sm text-slate-500">{{ $item['status']->label() }}</p>
@@ -137,14 +155,13 @@
                 </figure>
 
                 <ul class="min-w-0 flex-1 space-y-2.5">
-                    @foreach ($summary['statusOverview'] as $item)
-                    @php($percent = $summary['total'] > 0 ? round(($item['total'] / $summary['total']) * 100) : 0)
+                    @foreach ($statusRows as $item)
                     <li class="flex items-center justify-between gap-3 text-sm">
                         <span class="flex min-w-0 items-center gap-2">
-                            <span class="size-2.5 shrink-0 rounded-full" style="background: {{ $statusThemes[$item['status']->value]['hex'] }}"></span>
+                            <span class="size-2.5 shrink-0 rounded-full" @style(['background-color' => $item['hex']])></span>
                             <span class="truncate text-slate-700">{{ $item['status']->label() }}</span>
                         </span>
-                        <span class="shrink-0 font-semibold text-slate-900">{{ $item['total'] }} <span class="font-normal text-slate-400">({{ $percent }}%)</span></span>
+                        <span class="shrink-0 font-semibold text-slate-900">{{ $item['total'] }} <span class="font-normal text-slate-400">({{ $item['percent'] }}%)</span></span>
                     </li>
                     @endforeach
                 </ul>
@@ -155,18 +172,17 @@
             <p class="page-eyebrow">Theo loại hồ sơ</p>
             <h2 class="mt-1 text-lg font-semibold text-ink-950">Phân bố loại hồ sơ</h2>
 
-            @if ($summary['byType']->isEmpty())
+            @if ($typeRows->isEmpty())
             <p class="mt-6 text-sm text-slate-500">Chưa có dữ liệu loại hồ sơ.</p>
             @else
             <div class="dashboard-columns" role="img" aria-label="Biểu đồ cột theo loại hồ sơ">
-                @foreach ($summary['byType'] as $item)
-                @php($typePercent = (int) round(($item->total / $typeMax) * 100))
+                @foreach ($typeRows as $item)
                 <div class="dashboard-column">
-                    <p class="dashboard-column-value">{{ $item->total }}</p>
+                    <p class="dashboard-column-value">{{ $item['total'] }}</p>
                     <div class="dashboard-column-track">
-                        <div class="dashboard-column-fill" style="height: {{ $typePercent }}%"></div>
+                        <div class="dashboard-column-fill" @style(['height' => $item['height']])></div>
                     </div>
-                    <p class="dashboard-column-label" title="{{ $item->document_type_name }}">{{ $item->document_type_name }}</p>
+                    <p class="dashboard-column-label" title="{{ $item['name'] }}">{{ $item['name'] }}</p>
                 </div>
                 @endforeach
             </div>
@@ -174,7 +190,7 @@
         </article>
     </section>
 
-    <section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <section class="mt-6">
         <article class="surface-card">
             <div class="flex items-center justify-between gap-4">
                 <div>
@@ -189,6 +205,11 @@
                     <div class="min-w-0">
                         <p class="font-mono text-xs font-bold text-faculty-900">{{ $document->document_code }}</p>
                         <p class="mt-1 truncate text-sm font-medium text-slate-800">{{ $document->student?->full_name ?? $document->student_code }}</p>
+                        <p class="mt-1 truncate text-xs text-slate-500 sm:hidden">{{ $document->documentType?->name ?? 'Không xác định' }}</p>
+                    </div>
+                    <div class="hidden min-w-0 sm:block">
+                        <p class="text-xs text-slate-500">Loại hồ sơ</p>
+                        <p class="mt-1 truncate text-sm font-medium text-slate-800">{{ $document->documentType?->name ?? 'Không xác định' }}</p>
                     </div>
                     <div class="shrink-0 text-right">
                         <x-status-badge :status="$document->status" />

@@ -424,6 +424,14 @@
         @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset;
     }
 
+    .public-submit-success {
+        @apply flex items-start gap-2.5 rounded-xl border border-portal-200 bg-portal-100 px-3.5 py-2.5;
+    }
+
+    .public-submit-success svg {
+        @apply mt-0.5 text-portal-600;
+    }
+
     .public-success-card {
         @apply rounded-2xl border border-emerald-200 bg-emerald-50 p-5;
     }
