@@ -99,14 +99,6 @@
                     </div>
                 </article>
                 <article class="surface-card">
-                    <h2 class="text-lg font-semibold text-slate-950">Theo người phụ trách</h2>
-                    <div class="mt-4 divide-y divide-slate-100">
-                        @foreach ($report['byResponsibleUser'] as $item)
-                            <div class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"><span class="text-sm text-slate-700">{{ $item->responsible_user_name ?? 'Chưa phân công' }}</span><span class="text-sm font-semibold text-slate-900">{{ $item->total }}</span></div>
-                        @endforeach
-                    </div>
-                </article>
-                <article class="surface-card">
                     <h2 class="text-lg font-semibold text-slate-950">Theo ngày nộp và hoàn tất</h2>
                     <div class="mt-4 grid gap-5 sm:grid-cols-2">
                         <div><p class="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">Ngày nộp</p>@forelse ($report['submittedByDate'] as $item)<div class="flex justify-between gap-3 py-1.5 text-sm"><span class="text-slate-600">{{ \Illuminate\Support\Carbon::parse($item->report_date)->format('d/m/Y') }}</span><span class="font-semibold">{{ $item->total }}</span></div>@empty<p class="text-sm text-slate-500">Chưa có dữ liệu.</p>@endforelse</div>

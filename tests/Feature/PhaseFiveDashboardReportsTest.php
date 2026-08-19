@@ -20,7 +20,7 @@ class PhaseFiveDashboardReportsTest extends TestCase
 {
     use DatabaseTransactions;
 
-    public function test_dashboard_aggregates_only_documents_visible_to_an_employee(): void
+    public function test_dashboard_aggregates_all_documents_for_an_employee(): void
     {
         $employee = $this->createUser(UserRole::EMPLOYEE, 'phase5.dashboard.employee');
         $otherEmployee = $this->createUser(UserRole::EMPLOYEE, 'phase5.dashboard.other');
@@ -136,7 +136,7 @@ class PhaseFiveDashboardReportsTest extends TestCase
         $this->assertSame(1, $report['total']);
         $this->assertSame(StudentDocumentStatus::COMPLETED, $report['byStatus']->first()->status);
         $this->assertSame('Loại cần lọc', $report['byType']->first()->document_type_name);
-        $this->assertSame($responsible->full_name, $report['byResponsibleUser']->first()->responsible_user_name);
+        $this->assertArrayNotHasKey('byResponsibleUser', $report);
         $this->assertSame('2026-03-05', $report['submittedByDate']->first()->report_date);
         $this->assertSame('2026-03-08', $report['completedByDate']->first()->report_date);
     }
@@ -199,7 +199,6 @@ class PhaseFiveDashboardReportsTest extends TestCase
             'student_code' => $studentCode,
             'document_type_id' => $type->id,
             'status' => $status,
-            'assigned_secretary_user_id' => $responsible->id,
             'submitted_at' => Carbon::parse($submittedAt),
             'completed_at' => $completedAt === null ? null : Carbon::parse($completedAt),
             'invalid_reason' => null,

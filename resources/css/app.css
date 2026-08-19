@@ -136,7 +136,7 @@
     }
 
     .dashboard-recent-item {
-        @apply flex items-start justify-between gap-4 rounded-lg px-3 py-3 transition hover:bg-faculty-50 hover:text-faculty-900;
+        @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-lg px-3 py-3 transition hover:bg-faculty-50 hover:text-faculty-900 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_auto];
     }
 
     .dashboard-donut {
@@ -333,7 +333,7 @@
     }
 
     .public-service-grid {
-        @apply grid items-start gap-5 md:grid-cols-2 lg:gap-6;
+        @apply grid items-stretch gap-5 md:grid-cols-2 lg:gap-6;
     }
 
     .public-section-title {
@@ -341,7 +341,7 @@
     }
 
     .public-service-card {
-        @apply flex scroll-mt-28 flex-col overflow-hidden rounded-2xl border border-portal-200 bg-white shadow-sm;
+        @apply flex h-full scroll-mt-28 flex-col overflow-hidden rounded-2xl border border-portal-200 bg-white shadow-sm;
     }
 
     .public-card-accent {

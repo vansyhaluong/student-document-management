@@ -18,8 +18,8 @@ Do not change schema unless explicitly requested.
   `admin`, `secretary`, `staff`.
 - Main aggregate: `student_documents`, linked to `students` and
   `document_types`.
-- `assigned_secretary_user_id` is the legacy responsible-user column and may
-  reference all three roles.
+- `assigned_secretary_user_id` remains on the existing schema as an unused
+  legacy column. The application does not assign documents to a user.
 - Use the seven-status workflow approved in Architecture.
 - Use custom Service/Repository access to `activity_log`; add no audit package.
 - Preserve bcrypt compatibility.
@@ -28,7 +28,7 @@ Do not change schema unless explicitly requested.
 ## Phase 0 — Decisions and Schema Understanding — COMPLETE
 
 - Requirement and Architecture are approved.
-- Roles, workflow, assignment, audit, password, and MVP scope are approved.
+- Roles, workflow, audit, password, and MVP scope are approved.
 - `doctrack` is the authoritative existing schema.
 - Major Requirement/database conflicts have been resolved.
 
@@ -79,15 +79,14 @@ Depends on: Phase 1.
 
 - Implement username/password login, logout, and current session user.
 - Map `password_hash`, verify bcrypt, and enforce active accounts.
-- Implement middleware, Policies, and responsible-user query scopes for the
-  three approved roles.
+- Implement middleware and Policies for the three approved roles.
 - Audit login/security actions without email flows.
 
 Validation:
 
 - Valid users can log in locally; invalid/inactive users are rejected.
 - Unauthorized role/resource access is rejected by backend.
-- Employee only sees assigned documents.
+- Employee can view all documents; create remains Admin/Secretary only.
 - Password, hash, session, and secret values are not exposed.
 
 ### 4. Blade Application Shell
@@ -145,35 +144,33 @@ Depends on: Users and Document Types.
 - Implement list/detail/create/update using actual `student_documents` fields
   and existing students.
 - Search by document code, student code, or student name.
-- Filter by type, status, responsible user, and submitted date; support
-  allowlisted sort and pagination.
-- Apply record access scope before query results are returned.
+- Filter by type, status, and submitted date; support allowlisted sort and
+  pagination.
 - Preserve unique/immutable document code and audit important changes.
 - Build Blade list/detail/form and required UI states.
 
 Validation:
 
-- Admin/Secretary can create; Employee cannot create and only accesses assigned
+- Admin/Secretary can create; Employee cannot create and can access all
   documents.
 - No unsupported field or attachment feature is introduced.
 - Search/filter/pagination do not leak inaccessible records.
 - CRUD flow works against the existing local database.
 
-### 8. Assignment, Acceptance, and Status History
+### 8. Status History
 
 Depends on: Student Document Management.
 
-- Assign any approved role through `assigned_secretary_user_id`.
-- Implement Employee acceptance of assigned `waiting_for_receipt` documents.
+- Do not implement assignment or document acceptance.
 - Enforce the approved status transition map and terminal states in Service.
-- Use transaction and row lock for assignment, acceptance, and status change.
+- Use transaction and row lock for status change.
 - Maintain `completed_at`/`invalid_reason` rules and append history + audit
   atomically.
 
 Validation:
 
 - Invalid or unauthorized transitions fail without partial writes.
-- Concurrent operations do not create contradictory assignment/status state.
+- Concurrent operations do not create contradictory status state.
 - New history uses only approved status codes and cannot be edited directly.
 
 ---
@@ -184,9 +181,8 @@ Validation:
 
 Depends on: Student Document Workflow.
 
-- Implement counts and aggregates by status, type, responsible user,
-  submitted date, and completed date.
-- Apply role/access scope before aggregate queries.
+- Implement counts and aggregates by status, type, submitted date, and
+  completed date.
 - Implement date/type/status filters and Blade states.
 - Do not implement XLSX/PDF.
 
@@ -217,7 +213,7 @@ Validation:
 
 - Test authentication, active accounts, roles, and record scope.
 - Test validation, user/type/document flows, search/filter/pagination,
-  assignment/acceptance, workflow/history, and audit.
+  workflow/history, and audit.
 - Test relevant transaction rollback and centralized error behavior.
 - Run targeted Laravel tests and broader tests when useful.
 - Run Laravel Pint and `npm run build` where applicable.

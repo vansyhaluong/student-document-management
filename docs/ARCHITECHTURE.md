@@ -15,7 +15,7 @@ phù hợp code nếu chưa có task schema change được phê duyệt.
 | Database | MariaDB 10.11; schema chính `doctrack` |
 | Xác thực | Laravel session, username/password |
 | Password hiện hữu | Bcrypt-compatible |
-| Phân quyền | Role + Policy + query scope theo người phụ trách |
+| Phân quyền | Role + Policy; không scope theo người phụ trách |
 | Backend flow | Controller → Form Request → Service → Repository → Model |
 | Audit | Custom Service/Repository trên `activity_log`; không thêm package |
 | File attachment | Ngoài MVP; không có persistence schema |
@@ -143,19 +143,17 @@ Không tạo table attachment, generic `records`, `record_assignments`,
 erDiagram
     STUDENTS ||--o{ STUDENT_DOCUMENTS : owns
     DOCUMENT_TYPES ||--o{ STUDENT_DOCUMENTS : classifies
-    USERS ||--o{ STUDENT_DOCUMENTS : responsible_for
     STUDENT_DOCUMENTS ||--o{ DOCUMENT_STATUS_HISTORY : has
     USERS ||--o{ DOCUMENT_STATUS_HISTORY : changes
 ```
 
 - `student_documents.student_code → students.student_code`.
 - `student_documents.document_type_id → document_types.id`.
-- `student_documents.assigned_secretary_user_id → users.id`.
 - `document_status_history.student_document_id → student_documents.id`.
 - `document_status_history.changed_by_user_id → users.id`.
 
-`assigned_secretary_user_id` là legacy column name. Ứng dụng coi đây là người
-phụ trách hiện tại và cho phép cả ba role đã duyệt; không tạo assignment table.
+`assigned_secretary_user_id` vẫn còn trên schema như cột legacy nhưng ứng dụng
+không sử dụng để phân công, lọc, hiển thị hay phân quyền.
 
 ### 5.4. User mapping
 
@@ -190,12 +188,14 @@ không dùng `password_reset_tokens` hoặc email.
 - `student_code`
 - `document_type_id`
 - `status`
-- `assigned_secretary_user_id`
 - `submitted_at`
 - `completed_at`
 - `invalid_reason`
 - `note`
 - `updated_at`
+
+Cột schema `assigned_secretary_user_id` vẫn tồn tại nhưng code không map, đọc,
+ghi hoặc eager-load cột này.
 
 Table không có `name`, `description`, `created_by` hoặc `created_at`; code không
 được giả lập hoặc persist các field này. Trigger database giữ
@@ -245,17 +245,15 @@ Authorization có ba lớp:
 
 1. Middleware: authenticated + active account + route role.
 2. Policy: action trên resource cụ thể.
-3. Repository query scope: giới hạn list, dashboard và report.
+3. Không còn query scope theo assigned user cho list, dashboard hay report.
 
 | Action | Admin | Secretary | Employee |
 | --- | --- | --- | --- |
-| Xem dashboard | Toàn hệ thống | Toàn hệ thống | Hồ sơ được giao |
-| Xem hồ sơ | Tất cả | Tất cả | `assigned_secretary_user_id = user.id` |
+| Xem dashboard | Toàn hệ thống | Toàn hệ thống | Toàn hệ thống |
+| Xem hồ sơ | Tất cả | Tất cả | Tất cả |
 | Tạo hồ sơ | Có | Có | Không |
-| Cập nhật hồ sơ | Có | Có | Hồ sơ được giao, theo Policy |
-| Phân công | Có | Có | Không |
-| Tiếp nhận hồ sơ được giao | Có | Có | Có |
-| Đổi trạng thái | Có | Có | Chỉ hành động tiếp nhận được duyệt |
+| Cập nhật hồ sơ | Có | Có | Chỉ ghi chú |
+| Đổi trạng thái | Có | Có | Có |
 | Quản lý loại hồ sơ | Có | Không | Không |
 | Quản lý người dùng | Có | Không | Không |
 | Xem báo cáo | Có | Có | Không |
@@ -282,12 +280,11 @@ Authorization có ba lớp:
 - Mã/họ tên sinh viên.
 - Loại hồ sơ.
 - Trạng thái.
-- Người phụ trách.
 - Khoảng `submitted_at`.
 - Sort, direction, page và per-page có giới hạn.
 
-Access scope được áp dụng trước search, pagination và aggregate. Report và
-Dashboard aggregate tại MariaDB; không load toàn bộ dữ liệu vào PHP để đếm.
+Report và Dashboard aggregate tại MariaDB; không load toàn bộ dữ liệu vào PHP
+để đếm. Không lọc hoặc thống kê theo người phụ trách.
 
 ## 10. Audit
 
@@ -307,12 +304,11 @@ Dashboard aggregate tại MariaDB; không load toàn bộ dữ liệu vào PHP �
 Service mở transaction cho:
 
 - Tạo/cập nhật hồ sơ + audit.
-- Phân công/tiếp nhận + audit.
 - Đổi trạng thái + history + audit.
 - Tạo/cập nhật/khóa/reset user + audit.
 - Tạo/cập nhật/bật-tắt loại hồ sơ + audit.
 
-Status transition, tiếp nhận và phân công dùng row lock. Transaction phải ngắn;
+Status transition dùng row lock. Transaction phải ngắn;
 không render view, ghi network hoặc chạy query báo cáo trong transaction.
 
 ## 12. HTTP, response và exception

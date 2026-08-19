@@ -25,16 +25,15 @@ Hệ thống chỉ có ba vai trò nghiệp vụ:
 ### 2.2. Thư ký (`SECRETARY`)
 
 - Xem, tạo, cập nhật và xử lý hồ sơ.
-- Phân công người phụ trách.
 - Cập nhật trạng thái và xem lịch sử trạng thái.
 - Tìm kiếm, lọc, xem dashboard và báo cáo.
 
 ### 2.3. Nhân viên (`EMPLOYEE`)
 
-- Xem hồ sơ được phân công.
-- Xác nhận tiếp nhận hồ sơ được giao.
-- Tìm kiếm và lọc trong phạm vi được phép.
-- Cập nhật hồ sơ được phân công khi policy cho phép.
+- Xem tất cả hồ sơ.
+- Tìm kiếm và lọc hồ sơ.
+- Cập nhật ghi chú khi policy cho phép.
+- Chuyển trạng thái theo workflow đã duyệt.
 
 Trong database, `EMPLOYEE` được lưu bằng giá trị legacy `staff`. Không có role
 thứ tư. Backend phải enforce authorization; việc ẩn/hiện UI không phải cơ chế
@@ -61,8 +60,8 @@ Dashboard sau đăng nhập hiển thị theo phạm vi quyền:
 - Hồ sơ cập nhật gần đây.
 - Thống kê theo trạng thái và loại hồ sơ.
 
-Admin và Thư ký xem dữ liệu toàn hệ thống theo policy. Nhân viên chỉ xem thống
-kê của hồ sơ được phân công.
+Admin, Thư ký và Nhân viên xem thống kê toàn hệ thống. Báo cáo vẫn chỉ dành cho
+Admin và Thư ký.
 
 ## 5. Dữ liệu sinh viên
 
@@ -84,7 +83,6 @@ Hiển thị tối thiểu:
 - Mã hồ sơ.
 - Sinh viên.
 - Loại hồ sơ.
-- Người phụ trách.
 - Trạng thái.
 - Ngày nộp.
 - Ngày cập nhật.
@@ -94,10 +92,9 @@ Hỗ trợ search, filter, pagination, allowlisted sorting và truy cập chi ti
 ### 6.2. Tìm kiếm và bộ lọc
 
 - Tìm theo mã hồ sơ hoặc mã/tên sinh viên.
-- Lọc theo loại hồ sơ, trạng thái, người phụ trách và khoảng ngày nộp.
+- Lọc theo loại hồ sơ, trạng thái và khoảng ngày nộp.
 - Có chức năng xóa bộ lọc.
-- Search/filter/pagination xử lý phía backend và luôn áp dụng access scope trước
-  khi trả kết quả.
+- Search/filter/pagination xử lý phía backend.
 
 ### 6.3. Tạo hồ sơ
 
@@ -107,7 +104,6 @@ Admin và Thư ký được tạo hồ sơ. Input nghiệp vụ gồm:
 - Sinh viên hiện có.
 - Loại hồ sơ đang hoạt động.
 - Trạng thái khởi tạo `waiting_for_receipt`.
-- Người phụ trách nếu có.
 - Ghi chú nếu có.
 
 Hệ thống tự lưu ngày nộp và ngày cập nhật. Mã hồ sơ là duy nhất và không được
@@ -115,25 +111,23 @@ Hệ thống tự lưu ngày nộp và ngày cập nhật. Mã hồ sơ là duy 
 
 ### 6.4. Chi tiết và cập nhật
 
-Trang chi tiết hiển thị thông tin sinh viên, loại hồ sơ, trạng thái, người phụ
-trách, ngày nộp, ngày hoàn tất, lý do không hợp lệ, ghi chú và lịch sử trạng
-thái.
+Trang chi tiết hiển thị thông tin sinh viên, loại hồ sơ, trạng thái, ngày nộp,
+ngày hoàn tất, lý do không hợp lệ, ghi chú và lịch sử trạng thái.
 
-Admin, Thư ký và Nhân viên được phân công có thể cập nhật trong phạm vi Policy.
-Các thay đổi quan trọng phải được ghi audit. Lịch sử trạng thái chỉ được tạo bởi
-nghiệp vụ đổi trạng thái và không được sửa trực tiếp.
+Admin, Thư ký và Nhân viên có thể cập nhật trong phạm vi Policy. Các thay đổi
+quan trọng phải được ghi audit. Lịch sử trạng thái chỉ được tạo bởi nghiệp vụ
+đổi trạng thái và không được sửa trực tiếp.
 
-## 7. Phân công và tiếp nhận
+## 7. Xử lý hồ sơ theo vai trò và trạng thái
 
-`assigned_secretary_user_id` là tên cột legacy nhưng được hiểu là người phụ trách
-hiện tại. Cột này có thể tham chiếu người dùng thuộc `ADMIN`, `SECRETARY` hoặc
-`EMPLOYEE`.
+Hồ sơ không được phân công cho một người dùng cụ thể. Không có thao tác phân
+công hoặc nhận hồ sơ. Cột schema `assigned_secretary_user_id` vẫn tồn tại nhưng
+ứng dụng không đọc, ghi hoặc lọc theo cột này.
 
-- Admin và Thư ký có thể phân công hoặc đổi người phụ trách.
-- Nhân viên nhìn thấy hồ sơ được phân công cho mình.
-- Hành động tiếp nhận của Nhân viên chuyển hồ sơ theo workflow được duyệt; không
-  tạo thêm permission model hoặc assignment table trong MVP.
-- Việc phân công không cho phép người không liên quan truy cập hồ sơ.
+- Mọi vai trò nội bộ xem toàn bộ hồ sơ.
+- Admin và Thư ký tạo hồ sơ; Nhân viên không tạo hồ sơ.
+- Admin, Thư ký và Nhân viên chuyển trạng thái theo map đã duyệt.
+- Nhân viên chỉ cập nhật ghi chú; Admin và Thư ký cập nhật MSSV, loại và ghi chú.
 
 ## 8. Trạng thái và workflow
 
@@ -212,7 +206,7 @@ phải được audit.
 Admin và Thư ký xem báo cáo:
 
 - Tổng số hồ sơ.
-- Hồ sơ theo trạng thái, loại và người phụ trách.
+- Hồ sơ theo trạng thái và loại.
 - Hồ sơ tạo mới theo khoảng ngày nộp.
 - Hồ sơ hoàn tất theo khoảng ngày hoàn tất.
 
@@ -224,7 +218,6 @@ Audit các hành động:
 
 - Đăng nhập.
 - Tạo/cập nhật hồ sơ.
-- Phân công và tiếp nhận hồ sơ.
 - Thay đổi trạng thái.
 - Tạo/cập nhật tài khoản.
 - Đổi role, khóa/mở khóa và reset password.

@@ -74,7 +74,6 @@ class PhaseSixApplicationValidationTest extends TestCase
                 'keyword' => $matched->document_code,
                 'document_type_id' => $includedType->id,
                 'status' => StudentDocumentStatus::PROCESSING->value,
-                'responsible_user_id' => $employee->id,
                 'submitted_from' => '2026-05-01',
                 'submitted_to' => '2026-05-15',
             ]))
@@ -101,7 +100,7 @@ class PhaseSixApplicationValidationTest extends TestCase
             ->get(route('documents.index', ['keyword' => 'P6UniqueLast']))
             ->assertOk()
             ->assertSee($matched->document_code)
-            ->assertDontSee($hidden->document_code);
+            ->assertSee($hidden->document_code);
     }
 
     public function test_document_pagination_is_limited_to_the_filtered_result_set(): void
@@ -227,31 +226,16 @@ class PhaseSixApplicationValidationTest extends TestCase
         $this->assertSame($historyCount, $document->statusHistory()->count());
     }
 
-    public function test_assignment_rolls_back_when_audit_write_fails(): void
+    public function test_assignment_and_acceptance_endpoints_are_not_registered(): void
     {
-        $admin = $this->createUser(UserRole::ADMIN, 'phase6.assign.rollback');
-        $secretary = $this->createUser(UserRole::SECRETARY, 'phase6.assign.target');
-        $document = $this->createDocument(
-            'P6-ASSIGN-ROLLBACK',
-            $admin,
-            $this->createType('P6-ASSIGN-ROLLBACK', 'Loại rollback phân công'),
-        );
-        $this->mock(ActivityLogRepository::class)
-            ->shouldReceive('create')
-            ->once()
-            ->andThrow(new RuntimeException('Audit unavailable'));
-        $this->withoutExceptionHandling();
-
-        try {
-            $this->actingAs($admin)->patch(route('documents.assignment', $document), [
-                'assigned_secretary_user_id' => $secretary->id,
-            ]);
-            $this->fail('Expected audit failure.');
-        } catch (RuntimeException $exception) {
-            $this->assertSame('Audit unavailable', $exception->getMessage());
-        }
-
-        $this->assertSame($admin->id, $document->fresh()->assigned_secretary_user_id);
+        $this->assertNull(app('router')->getRoutes()->getByName('documents.assignment'));
+        $this->assertNull(app('router')->getRoutes()->getByName('documents.accept'));
+        $this->assertNull(app('router')->getRoutes()->getByAction(
+            'App\\Http\\Controllers\\StudentDocumentController@assign',
+        ));
+        $this->assertNull(app('router')->getRoutes()->getByAction(
+            'App\\Http\\Controllers\\StudentDocumentController@accept',
+        ));
     }
 
     public function test_guest_cannot_access_protected_application_modules(): void
@@ -327,7 +311,6 @@ class PhaseSixApplicationValidationTest extends TestCase
             'student_code' => $student->student_code,
             'document_type_id' => $type->id,
             'status' => $status,
-            'assigned_secretary_user_id' => $responsible->id,
             'submitted_at' => Carbon::parse($submittedAt),
             'completed_at' => null,
             'invalid_reason' => null,

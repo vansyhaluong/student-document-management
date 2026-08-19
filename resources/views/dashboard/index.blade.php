@@ -198,25 +198,6 @@
                 @endforeach
             </div>
         </article>
-
-        <article class="surface-card">
-            <p class="page-eyebrow">Người phụ trách</p>
-            <h2 class="mt-1 text-lg font-semibold text-ink-950">Khối lượng đang được giao</h2>
-            <div class="mt-5 space-y-3">
-                @foreach ($summary['byResponsibleUser'] as $item)
-                @php($loadPercent = $summary['total'] > 0 ? (int) round(($item->total / $summary['total']) * 100) : 0)
-                <div>
-                    <div class="flex items-center justify-between gap-3 text-sm">
-                        <span class="min-w-0 truncate text-slate-700">{{ $item->responsible_user_name ?? 'Chưa phân công' }}</span>
-                        <span class="shrink-0 text-xs font-semibold text-faculty-800">{{ $item->total }} hồ sơ</span>
-                    </div>
-                    <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-faculty-50">
-                        <div class="h-full rounded-full bg-faculty-600" style="width: {{ $loadPercent }}%"></div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </article>
     </section>
     @endif
 </div>
