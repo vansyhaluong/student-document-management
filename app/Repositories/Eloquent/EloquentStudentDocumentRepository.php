@@ -3,13 +3,12 @@
 namespace App\Repositories\Eloquent;
 
 use App\DTOs\StudentDocumentFilterData;
-use App\Enums\UserRole;
 use App\Models\StudentDocument;
 use App\Models\User;
 use App\Repositories\Contracts\StudentDocumentRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class EloquentStudentDocumentRepository implements StudentDocumentRepository
 {
@@ -22,14 +21,26 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
     {
         return StudentDocument::query()
             ->select([
+                'id',
                 'document_code',
                 'student_code',
                 'document_type_id',
                 'status',
                 'submitted_at',
                 'completed_at',
+                'note',
             ])
-            ->with('documentType:id,name')
+            ->with([
+                'documentType:id,name',
+                'statusHistory' => function ($query): void {
+                    $query->select([
+                        'id',
+                        'student_document_id',
+                        'note',
+                        'changed_at',
+                    ]);
+                },
+            ])
             ->where('student_code', $studentCode)
             ->orderByDesc('submitted_at')
             ->get();
@@ -44,7 +55,7 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
 
     public function findVisibleById(int $id, User $actor): ?StudentDocument
     {
-        return $this->applyVisibilityScope($this->detailQuery(), $actor)->find($id);
+        return $this->detailQuery()->find($id);
     }
 
     public function lockById(int $id): ?StudentDocument
@@ -56,7 +67,7 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
         StudentDocumentFilterData $filters,
         User $actor,
     ): LengthAwarePaginator {
-        $query = $this->applyVisibilityScope($this->baseQuery(), $actor);
+        $query = $this->baseQuery();
 
         if ($filters->keyword !== null) {
             $keyword = $filters->keyword;
@@ -80,12 +91,6 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
         )->when(
             $filters->status !== null,
             fn (Builder $query) => $query->where('status', $filters->status->value),
-        )->when(
-            $filters->responsibleUserId !== null,
-            fn (Builder $query) => $query->where(
-                'assigned_secretary_user_id',
-                $filters->responsibleUserId,
-            ),
         )->when(
             $filters->submittedFrom !== null,
             fn (Builder $query) => $query->whereDate(
@@ -120,7 +125,6 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
         return StudentDocument::query()->create($attributes)->load([
             'student',
             'documentType',
-            'responsibleUser',
         ]);
     }
 
@@ -129,21 +133,11 @@ class EloquentStudentDocumentRepository implements StudentDocumentRepository
         return StudentDocument::query()->with([
             'student',
             'documentType',
-            'responsibleUser',
         ]);
     }
 
     private function detailQuery(): Builder
     {
         return $this->baseQuery()->with('statusHistory.changedBy');
-    }
-
-    private function applyVisibilityScope(Builder $query, User $actor): Builder
-    {
-        if ($actor->hasRole(UserRole::EMPLOYEE)) {
-            $query->where('assigned_secretary_user_id', $actor->getKey());
-        }
-
-        return $query;
     }
 }

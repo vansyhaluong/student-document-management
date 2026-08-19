@@ -31,10 +31,6 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 
-    Route::patch('/documents/{document}/assignment', [StudentDocumentController::class, 'assign'])
-        ->name('documents.assignment');
-    Route::post('/documents/{document}/accept', [StudentDocumentController::class, 'accept'])
-        ->name('documents.accept');
     Route::patch('/documents/{document}/status', [StudentDocumentController::class, 'changeStatus'])
         ->name('documents.status');
     Route::resource('documents', StudentDocumentController::class)->except('destroy');

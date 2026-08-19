@@ -40,19 +40,6 @@
         </div>
     @endif
 
-    @if (! $editing && ! $isEmployee)
-        <div>
-            <label for="assigned_secretary_user_id" class="mb-2 block text-sm font-semibold text-slate-700">Người phụ trách</label>
-            <select id="assigned_secretary_user_id" name="assigned_secretary_user_id" @class(['form-control', 'form-control-error' => $errors->has('assigned_secretary_user_id')])>
-                <option value="">Chưa phân công</option>
-                @foreach ($responsibleUsers as $user)
-                    <option value="{{ $user->id }}" @selected((string) old('assigned_secretary_user_id') === (string) $user->id)>{{ $user->full_name }} · {{ $user->role->label() }}</option>
-                @endforeach
-            </select>
-            @error('assigned_secretary_user_id')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-    @endif
-
     <div class="md:col-span-2">
         <label for="note" class="mb-2 block text-sm font-semibold text-slate-700">Ghi chú hồ sơ</label>
         <textarea id="note" name="note" rows="5" maxlength="500" @class(['form-control', 'form-control-error' => $errors->has('note')])>{{ old('note', $document->note ?? '') }}</textarea>

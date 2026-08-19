@@ -13,7 +13,6 @@ use App\Repositories\Contracts\DocumentStatusHistoryRepository;
 use App\Repositories\Contracts\DocumentTypeRepository;
 use App\Repositories\Contracts\StudentDocumentRepository;
 use App\Repositories\Contracts\StudentRepository;
-use App\Repositories\Contracts\UserRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -29,7 +28,6 @@ class StudentDocumentService
         private readonly StudentDocumentRepository $documents,
         private readonly StudentRepository $students,
         private readonly DocumentTypeRepository $documentTypes,
-        private readonly UserRepository $users,
         private readonly DocumentStatusHistoryRepository $history,
         private readonly ActivityLogService $activityLog,
     ) {}
@@ -56,7 +54,6 @@ class StudentDocumentService
         return [
             'documents' => $this->paginate($filters, $actor),
             'documentTypes' => $this->documentTypes->allOrdered(),
-            'responsibleUsers' => $this->users->allForDocumentFilter(),
             'statuses' => StudentDocumentStatus::cases(),
         ];
     }
@@ -76,7 +73,6 @@ class StudentDocumentService
         return [
             'document' => $document,
             'documentTypes' => $types->sortBy('name')->values(),
-            'responsibleUsers' => $this->users->activeForAssignment(),
         ];
     }
 
@@ -100,7 +96,8 @@ class StudentDocumentService
      *     document_type: string,
      *     status: string,
      *     submitted_at: string,
-     *     completed_at: ?string
+     *     completed_at: ?string,
+     *     notes: ?string
      * }>}
      */
     public function publicLookup(string $studentCode): array
@@ -126,7 +123,8 @@ class StudentDocumentService
      *         status: string,
      *         status_label: string,
      *         submitted_at: string,
-     *         completed_at: ?string
+     *         completed_at: ?string,
+     *         notes: ?string
      *     }>
      * }
      */
@@ -160,7 +158,6 @@ class StudentDocumentService
                         'student_code' => $student->student_code,
                         'document_type_id' => (int) $data['document_type_id'],
                         'status' => StudentDocumentStatus::WAITING_FOR_RECEIPT,
-                        'assigned_secretary_user_id' => null,
                         'submitted_at' => $submittedAt,
                         'completed_at' => null,
                         'invalid_reason' => null,
@@ -188,14 +185,12 @@ class StudentDocumentService
         return DB::transaction(function () use ($data, $actor): StudentDocument {
             $student = $this->requireStudent($data['student_code']);
             $this->assertActiveDocumentType((int) $data['document_type_id']);
-            $this->assertActiveResponsibleUser($data['assigned_secretary_user_id'] ?? null);
 
             $document = $this->documents->create([
                 'document_code' => $data['document_code'],
                 'student_code' => $student->student_code,
                 'document_type_id' => (int) $data['document_type_id'],
                 'status' => StudentDocumentStatus::WAITING_FOR_RECEIPT,
-                'assigned_secretary_user_id' => $data['assigned_secretary_user_id'] ?? null,
                 'submitted_at' => now(),
                 'completed_at' => null,
                 'invalid_reason' => null,
@@ -244,49 +239,6 @@ class StudentDocumentService
                 $document = $this->documents->save($document);
                 $this->activityLog->recordStudentDocumentUpdated($actor, $document, $changedFields);
             }
-
-            return $document;
-        });
-    }
-
-    public function assign(int $id, int $responsibleUserId, User $actor): StudentDocument
-    {
-        return DB::transaction(function () use ($id, $responsibleUserId, $actor): StudentDocument {
-            $document = $this->locked($id);
-            Gate::forUser($actor)->authorize('assign', $document);
-            $this->assertActiveResponsibleUser($responsibleUserId);
-
-            $previousUserId = $document->assigned_secretary_user_id;
-            $document->assigned_secretary_user_id = $responsibleUserId;
-
-            if ($document->isDirty('assigned_secretary_user_id')) {
-                $document = $this->documents->save($document);
-                $this->activityLog->recordStudentDocumentAssigned(
-                    $actor,
-                    $document,
-                    $previousUserId,
-                );
-            }
-
-            return $document;
-        });
-    }
-
-    public function accept(int $id, ?string $note, User $actor): StudentDocument
-    {
-        return DB::transaction(function () use ($id, $note, $actor): StudentDocument {
-            $document = $this->locked($id);
-            Gate::forUser($actor)->authorize('accept', $document);
-
-            $document = $this->transitionLocked(
-                $document,
-                StudentDocumentStatus::RECEIVED,
-                $note,
-                null,
-                $actor,
-            );
-
-            $this->activityLog->recordStudentDocumentAccepted($actor, $document);
 
             return $document;
         });
@@ -344,6 +296,9 @@ class StudentDocumentService
         $document->invalid_reason = $nextStatus === StudentDocumentStatus::INVALID
             ? $invalidReason
             : null;
+        if (filled($note)) {
+            $document->note = $note;
+        }
         $document = $this->documents->save($document);
 
         $this->history->create([
@@ -416,7 +371,8 @@ class StudentDocumentService
      *     document_type: string,
      *     status: string,
      *     submitted_at: string,
-     *     completed_at: ?string
+     *     completed_at: ?string,
+     *     notes: ?string
      * }
      */
     private function mapPublicDocumentForWeb(StudentDocument $document): array
@@ -427,6 +383,7 @@ class StudentDocumentService
             'status' => $document->status->label(),
             'submitted_at' => $document->submitted_at->format('d/m/Y'),
             'completed_at' => $document->completed_at?->format('d/m/Y'),
+            'notes' => $this->publicNotes($document),
         ];
     }
 
@@ -437,7 +394,8 @@ class StudentDocumentService
      *     status: string,
      *     status_label: string,
      *     submitted_at: string,
-     *     completed_at: ?string
+     *     completed_at: ?string,
+     *     notes: ?string
      * }
      */
     private function mapPublicDocumentForApi(StudentDocument $document): array
@@ -449,7 +407,33 @@ class StudentDocumentService
             'status_label' => $document->status->label(),
             'submitted_at' => $document->submitted_at->format('Y-m-d'),
             'completed_at' => $document->completed_at?->format('Y-m-d'),
+            'notes' => $this->publicNotes($document),
         ];
+    }
+
+    private function publicNotes(StudentDocument $document): ?string
+    {
+        $documentNote = trim((string) $document->note);
+
+        if ($documentNote !== '') {
+            return $documentNote;
+        }
+
+        if (! $document->relationLoaded('statusHistory')) {
+            return null;
+        }
+
+        $latestHistoryNote = $document->statusHistory
+            ->sortByDesc(fn ($entry): array => [
+                $entry->changed_at?->timestamp ?? 0,
+                (int) $entry->getKey(),
+            ])
+            ->map(fn ($entry): string => trim((string) $entry->note))
+            ->first(fn (string $note): bool => $note !== '');
+
+        return $latestHistoryNote !== null && $latestHistoryNote !== ''
+            ? $latestHistoryNote
+            : null;
     }
 
     private function publicDocumentTypeName(StudentDocument $document): string
@@ -465,22 +449,6 @@ class StudentDocumentService
             throw new BusinessRuleException(
                 'Loại hồ sơ không khả dụng.',
                 ['document_type_id' => 'Vui lòng chọn loại hồ sơ đang sử dụng.'],
-            );
-        }
-    }
-
-    private function assertActiveResponsibleUser(?int $userId): void
-    {
-        if ($userId === null) {
-            return;
-        }
-
-        $user = $this->users->findById($userId);
-
-        if ($user === null || ! $user->is_active) {
-            throw new BusinessRuleException(
-                'Người phụ trách không khả dụng.',
-                ['assigned_secretary_user_id' => 'Vui lòng chọn tài khoản đang hoạt động.'],
             );
         }
     }

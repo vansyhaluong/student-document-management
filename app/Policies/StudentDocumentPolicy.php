@@ -15,8 +15,7 @@ class StudentDocumentPolicy
 
     public function view(User $user, StudentDocument $document): bool
     {
-        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY)
-            || $this->isAssignedEmployee($user, $document);
+        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY, UserRole::EMPLOYEE);
     }
 
     public function create(User $user): bool
@@ -26,29 +25,11 @@ class StudentDocumentPolicy
 
     public function update(User $user, StudentDocument $document): bool
     {
-        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY)
-            || $this->isAssignedEmployee($user, $document);
-    }
-
-    public function assign(User $user, StudentDocument $document): bool
-    {
-        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY);
-    }
-
-    public function accept(User $user, StudentDocument $document): bool
-    {
-        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY)
-            || $this->isAssignedEmployee($user, $document);
+        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY, UserRole::EMPLOYEE);
     }
 
     public function changeStatus(User $user, StudentDocument $document): bool
     {
-        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY);
-    }
-
-    private function isAssignedEmployee(User $user, StudentDocument $document): bool
-    {
-        return $user->hasRole(UserRole::EMPLOYEE)
-            && $document->assigned_secretary_user_id === $user->getKey();
+        return $user->hasRole(UserRole::ADMIN, UserRole::SECRETARY, UserRole::EMPLOYEE);
     }
 }

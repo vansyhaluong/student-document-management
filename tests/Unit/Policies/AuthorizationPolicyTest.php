@@ -16,34 +16,26 @@ class AuthorizationPolicyTest extends TestCase
     public function test_admin_and_secretary_have_approved_document_actions(): void
     {
         $policy = new StudentDocumentPolicy;
-        $document = $this->document(30);
+        $document = $this->document();
 
         foreach ([$this->user(1, UserRole::ADMIN), $this->user(2, UserRole::SECRETARY)] as $user) {
             $this->assertTrue($policy->view($user, $document));
             $this->assertTrue($policy->create($user));
             $this->assertTrue($policy->update($user, $document));
-            $this->assertTrue($policy->assign($user, $document));
-            $this->assertTrue($policy->accept($user, $document));
             $this->assertTrue($policy->changeStatus($user, $document));
         }
     }
 
-    public function test_employee_can_only_view_update_and_accept_an_assigned_document(): void
+    public function test_employee_can_view_update_and_change_status_on_any_document(): void
     {
         $policy = new StudentDocumentPolicy;
         $employee = $this->user(30, UserRole::EMPLOYEE);
-        $assigned = $this->document(30);
-        $unassigned = $this->document(31);
+        $document = $this->document();
 
-        $this->assertTrue($policy->view($employee, $assigned));
-        $this->assertTrue($policy->update($employee, $assigned));
-        $this->assertTrue($policy->accept($employee, $assigned));
-        $this->assertFalse($policy->view($employee, $unassigned));
-        $this->assertFalse($policy->update($employee, $unassigned));
-        $this->assertFalse($policy->accept($employee, $unassigned));
+        $this->assertTrue($policy->view($employee, $document));
+        $this->assertTrue($policy->update($employee, $document));
+        $this->assertTrue($policy->changeStatus($employee, $document));
         $this->assertFalse($policy->create($employee));
-        $this->assertFalse($policy->assign($employee, $assigned));
-        $this->assertFalse($policy->changeStatus($employee, $assigned));
     }
 
     public function test_only_admin_can_manage_users_and_document_types(): void
@@ -77,11 +69,10 @@ class AuthorizationPolicyTest extends TestCase
         ]);
     }
 
-    private function document(int $responsibleUserId): StudentDocument
+    private function document(): StudentDocument
     {
         return (new StudentDocument)->forceFill([
             'id' => 10,
-            'assigned_secretary_user_id' => $responsibleUserId,
         ]);
     }
 }

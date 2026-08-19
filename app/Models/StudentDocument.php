@@ -16,7 +16,6 @@ class StudentDocument extends Model
         'student_code',
         'document_type_id',
         'status',
-        'assigned_secretary_user_id',
         'submitted_at',
         'completed_at',
         'invalid_reason',
@@ -38,11 +37,6 @@ class StudentDocument extends Model
         return $this->belongsTo(DocumentStatus::class, 'status', 'code');
     }
 
-    public function responsibleUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_secretary_user_id');
-    }
-
     public function statusHistory(): HasMany
     {
         return $this->hasMany(DocumentStatusHistory::class, 'student_document_id')
@@ -53,7 +47,6 @@ class StudentDocument extends Model
     {
         return [
             'document_type_id' => 'integer',
-            'assigned_secretary_user_id' => 'integer',
             'status' => StudentDocumentStatus::class,
             'submitted_at' => 'datetime',
             'completed_at' => 'datetime',

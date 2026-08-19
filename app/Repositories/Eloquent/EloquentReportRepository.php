@@ -3,7 +3,6 @@
 namespace App\Repositories\Eloquent;
 
 use App\DTOs\ReportFilterData;
-use App\Enums\UserRole;
 use App\Models\StudentDocument;
 use App\Models\User;
 use App\Repositories\Contracts\ReportRepository;
@@ -15,15 +14,14 @@ class EloquentReportRepository implements ReportRepository
     /** @return array<string, mixed> */
     public function dashboard(User $actor): array
     {
-        $query = $this->applyVisibilityScope(StudentDocument::query(), $actor);
+        $query = StudentDocument::query();
 
         return [
             'total' => (clone $query)->count(),
             'byStatus' => $this->byStatus($query),
             'byType' => $this->byType($query),
-            'byResponsibleUser' => $this->byResponsibleUser($query),
             'recentDocuments' => (clone $query)
-                ->with(['student', 'documentType', 'responsibleUser'])
+                ->with(['student', 'documentType'])
                 ->orderByDesc('updated_at')
                 ->limit(6)
                 ->get(),
@@ -33,16 +31,12 @@ class EloquentReportRepository implements ReportRepository
     /** @return array<string, mixed> */
     public function report(ReportFilterData $filters, User $actor): array
     {
-        $query = $this->applyFilters(
-            $this->applyVisibilityScope(StudentDocument::query(), $actor),
-            $filters,
-        );
+        $query = $this->applyFilters(StudentDocument::query(), $filters);
 
         return [
             'total' => (clone $query)->count(),
             'byStatus' => $this->byStatus($query),
             'byType' => $this->byType($query),
-            'byResponsibleUser' => $this->byResponsibleUser($query),
             'submittedByDate' => (clone $query)
                 ->selectRaw('DATE(submitted_at) as report_date, COUNT(*) as total')
                 ->groupByRaw('DATE(submitted_at)')
@@ -82,22 +76,6 @@ class EloquentReportRepository implements ReportRepository
             ->get();
     }
 
-    /** @return Collection<int, StudentDocument> */
-    private function byResponsibleUser(Builder $query)
-    {
-        return (clone $query)
-            ->leftJoin('users', 'users.id', '=', 'student_documents.assigned_secretary_user_id')
-            ->select([
-                'users.id as responsible_user_id',
-                'users.full_name as responsible_user_name',
-            ])
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('users.id', 'users.full_name')
-            ->orderByRaw('users.full_name IS NULL')
-            ->orderBy('users.full_name')
-            ->get();
-    }
-
     private function applyFilters(Builder $query, ReportFilterData $filters): Builder
     {
         return $query
@@ -125,14 +103,5 @@ class EloquentReportRepository implements ReportRepository
                 $filters->completedTo !== null,
                 fn (Builder $query) => $query->whereDate('completed_at', '<=', $filters->completedTo),
             );
-    }
-
-    private function applyVisibilityScope(Builder $query, User $actor): Builder
-    {
-        if ($actor->hasRole(UserRole::EMPLOYEE)) {
-            $query->where('assigned_secretary_user_id', $actor->getKey());
-        }
-
-        return $query;
     }
 }

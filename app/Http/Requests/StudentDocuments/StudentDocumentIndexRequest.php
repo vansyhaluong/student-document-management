@@ -22,7 +22,6 @@ class StudentDocumentIndexRequest extends FormRequest
             'keyword' => ['nullable', 'string', 'max:150'],
             'document_type_id' => ['nullable', 'integer', 'exists:document_types,id'],
             'status' => ['nullable', Rule::enum(StudentDocumentStatus::class)],
-            'responsible_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'submitted_from' => ['nullable', 'date_format:Y-m-d'],
             'submitted_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:submitted_from'],
             'sort' => ['nullable', Rule::in(['document_code', 'status', 'submitted_at', 'updated_at'])],

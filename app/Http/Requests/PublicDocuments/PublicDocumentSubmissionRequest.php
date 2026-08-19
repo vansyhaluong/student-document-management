@@ -40,6 +40,11 @@ class PublicDocumentSubmissionRequest extends FormRequest
         ];
     }
 
+    public function getRedirectUrl(): string
+    {
+        return route('home').'#submission';
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([

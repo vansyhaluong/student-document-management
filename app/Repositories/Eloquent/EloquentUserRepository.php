@@ -65,15 +65,6 @@ class EloquentUserRepository implements UserRepository
         return $user->refresh();
     }
 
-    public function activeForAssignment(): Collection
-    {
-        return $this->safeQuery()
-            ->where('is_active', true)
-            ->orderBy('full_name')
-            ->orderBy('id')
-            ->get();
-    }
-
     public function allForDocumentFilter(): Collection
     {
         return $this->safeQuery()

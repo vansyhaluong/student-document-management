@@ -249,24 +249,6 @@ class ActivityLogService
         );
     }
 
-    public function recordStudentDocumentAssigned(
-        User $actor,
-        StudentDocument $subject,
-        ?int $previousUserId,
-    ): void {
-        $this->record(
-            actor: $actor,
-            subject: $subject,
-            event: 'student_document.assigned',
-            description: 'Phân công người phụ trách hồ sơ',
-            properties: [
-                'document_code' => $subject->document_code,
-                'previous_user_id' => $previousUserId,
-                'assigned_user_id' => $subject->assigned_secretary_user_id,
-            ],
-        );
-    }
-
     public function recordStudentDocumentStatusChanged(
         User $actor,
         StudentDocument $subject,
@@ -280,20 +262,6 @@ class ActivityLogService
             properties: [
                 'document_code' => $subject->document_code,
                 'previous_status' => $previousStatus,
-                'new_status' => $subject->status->value,
-            ],
-        );
-    }
-
-    public function recordStudentDocumentAccepted(User $actor, StudentDocument $subject): void
-    {
-        $this->record(
-            actor: $actor,
-            subject: $subject,
-            event: 'student_document.accepted',
-            description: 'Tiếp nhận hồ sơ sinh viên',
-            properties: [
-                'document_code' => $subject->document_code,
                 'new_status' => $subject->status->value,
             ],
         );

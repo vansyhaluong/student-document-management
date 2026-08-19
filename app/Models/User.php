@@ -27,11 +27,6 @@ class User extends Authenticatable
         return 'password_hash';
     }
 
-    public function assignedDocuments(): HasMany
-    {
-        return $this->hasMany(StudentDocument::class, 'assigned_secretary_user_id');
-    }
-
     public function statusChanges(): HasMany
     {
         return $this->hasMany(DocumentStatusHistory::class, 'changed_by_user_id');

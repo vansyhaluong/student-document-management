@@ -31,6 +31,11 @@ class PublicDocumentLookupRequest extends FormRequest
         ];
     }
 
+    public function getRedirectUrl(): string
+    {
+        return route('home').'#lookup';
+    }
+
     protected function prepareForValidation(): void
     {
         $this->merge([

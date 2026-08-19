@@ -26,8 +26,5 @@ interface UserRepository
     public function save(User $user): User;
 
     /** @return Collection<int, User> */
-    public function activeForAssignment(): Collection;
-
-    /** @return Collection<int, User> */
     public function allForDocumentFilter(): Collection;
 }

@@ -48,17 +48,6 @@
                     @endforeach
                 </select>
             </div>
-            @unless(auth()->user()->hasRole(\App\Enums\UserRole::EMPLOYEE))
-            <div>
-                <label for="responsible_user_id" class="mb-2 block text-xs font-semibold text-slate-600">Người phụ trách</label>
-                <select id="responsible_user_id" name="responsible_user_id" class="filter-control">
-                    <option value="">Tất cả người phụ trách</option>
-                    @foreach ($responsibleUsers as $user)
-                    <option value="{{ $user->id }}" @selected((string) ($filters['responsible_user_id'] ?? '' )===(string) $user->id)>{{ $user->full_name }}{{ $user->is_active ? '' : ' (đã khóa)' }}</option>
-                    @endforeach
-                </select>
-            </div>
-            @endunless
             <div>
                 <label for="submitted_from" class="mb-2 block text-xs font-semibold text-slate-600">Nộp từ ngày</label>
                 <input id="submitted_from" name="submitted_from" type="date" value="{{ $filters['submitted_from'] ?? '' }}" class="filter-control">
@@ -127,17 +116,7 @@
                             <x-status-badge :status="$document->status" />
                         @endif
                     @else
-                        <div class="flex flex-col items-start gap-2">
-                            <x-status-badge :status="$document->status" />
-                            @if ($document->status === \App\Enums\StudentDocumentStatus::WAITING_FOR_RECEIPT)
-                                @can('accept', $document)
-                                    <form method="POST" action="{{ route('documents.accept', $document) }}">
-                                        @csrf
-                                        <button type="submit" class="btn-secondary px-3 text-xs">Tiếp nhận</button>
-                                    </form>
-                                @endcan
-                            @endif
-                        </div>
+                        <x-status-badge :status="$document->status" />
                     @endcan
                 </td>
                 <td class="table-cell whitespace-nowrap text-sm text-slate-600">{{ $document->submitted_at->format('d/m/Y H:i') }}</td>

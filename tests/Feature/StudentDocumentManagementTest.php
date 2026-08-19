@@ -23,14 +23,12 @@ class StudentDocumentManagementTest extends TestCase
     public function test_admin_can_create_document_with_initial_history_and_audit(): void
     {
         $admin = $this->createUser(UserRole::ADMIN, 'admin.documents.create');
-        $responsible = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.assigned');
         $student = $this->createStudent('SV-P4-CREATE');
         $type = $this->createType('P4-CREATE');
         $this->actingAs($admin)->post(route('documents.store'), [
             'document_code' => 'HS-P4-CREATE',
             'student_code' => $student->student_code,
             'document_type_id' => $type->id,
-            'assigned_secretary_user_id' => $responsible->id,
             'note' => 'Hồ sơ mới',
         ])->assertRedirect();
 
@@ -79,11 +77,12 @@ class StudentDocumentManagementTest extends TestCase
             ->assertSee($document->student->full_name)
             ->assertSee($admin->full_name)
             ->assertSee($document->documentType->name)
-            ->assertDontSee('Lưu phân công');
+            ->assertDontSee('Người phụ trách')
+            ->assertDontSee('Lưu phân công')
+            ->assertDontSee('Tiếp nhận hồ sơ');
 
         $document->setRelation('student', null);
         $document->setRelation('documentType', null);
-        $document->setRelation('responsibleUser', null);
         $history = (new DocumentStatusHistory)->forceFill([
             'status' => StudentDocumentStatus::RECEIVED,
             'changed_at' => now(),
@@ -93,29 +92,31 @@ class StudentDocumentManagementTest extends TestCase
 
         $html = view('student-documents.show', [
             'document' => $document,
-            'responsibleUsers' => collect(),
             'availableTransitions' => collect(),
         ])->render();
 
         $this->assertStringContainsString($document->student_code, $html);
+        $this->assertStringContainsString('Lý do', $html);
         $this->assertStringContainsString('Không xác định', $html);
-        $this->assertStringContainsString('Chưa phân công', $html);
+        $this->assertStringNotContainsString('Ghi chú hồ sơ', $html);
+        $this->assertStringNotContainsString('Chưa phân công', $html);
+        $this->assertStringNotContainsString('Người phụ trách', $html);
     }
 
-    public function test_employee_cannot_create_and_only_sees_assigned_documents(): void
+    public function test_employee_cannot_create_but_can_see_all_documents(): void
     {
         $employee = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.scope');
         $other = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.other');
-        $assigned = $this->createDocument('HS-P4-VISIBLE', $employee);
-        $hidden = $this->createDocument('HS-P4-HIDDEN', $other);
+        $own = $this->createDocument('HS-P4-VISIBLE', $employee);
+        $otherDocument = $this->createDocument('HS-P4-HIDDEN', $other);
 
         $this->actingAs($employee)
             ->get(route('documents.index'))
             ->assertOk()
-            ->assertSee($assigned->document_code)
-            ->assertDontSee($hidden->document_code);
+            ->assertSee($own->document_code)
+            ->assertSee($otherDocument->document_code);
         $this->actingAs($employee)->get(route('documents.create'))->assertForbidden();
-        $this->actingAs($employee)->get(route('documents.show', $hidden))->assertNotFound();
+        $this->actingAs($employee)->get(route('documents.show', $otherDocument))->assertOk();
     }
 
     public function test_document_list_allows_inline_status_change_and_hides_responsible_column(): void
@@ -127,8 +128,9 @@ class StudentDocumentManagementTest extends TestCase
         $this->actingAs($employee)
             ->get(route('documents.index'))
             ->assertOk()
-            ->assertDontSee('data-status-autosubmit', false)
-            ->assertSee('Tiếp nhận');
+            ->assertSee('data-status-autosubmit', false)
+            ->assertDontSee('Xác nhận tiếp nhận')
+            ->assertDontSee('Người phụ trách');
 
         $this->actingAs($admin)
             ->get(route('documents.index'))
@@ -148,29 +150,28 @@ class StudentDocumentManagementTest extends TestCase
         $this->assertSame(StudentDocumentStatus::RECEIVED, $document->fresh()->status);
     }
 
-    public function test_assigned_employee_can_accept_waiting_document_atomically(): void
+    public function test_employee_can_change_waiting_document_to_received(): void
     {
-        $employee = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.accept');
-        $document = $this->createDocument('HS-P4-ACCEPT', $employee);
-        $auditRepository = $this->mock(ActivityLogRepository::class);
-        $auditRepository
-            ->shouldReceive('create')
-            ->once()
-            ->with(Mockery::on(
-                static fn (array $attributes): bool => $attributes['event'] === 'student_document.status_changed',
-            ));
-        $auditRepository
-            ->shouldReceive('create')
-            ->once()
-            ->with(Mockery::on(
-                static fn (array $attributes): bool => $attributes['event'] === 'student_document.accepted',
-            ));
+        $employee = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.status');
+        $document = $this->createDocument('HS-P4-RECEIVE', $employee);
+        $this->expectAudit('student_document.status_changed');
 
-        $this->actingAs($employee)->post(route('documents.accept', $document), [
+        $this->actingAs($employee)->patch(route('documents.status', $document), [
+            'status' => StudentDocumentStatus::RECEIVED->value,
             'transition_note' => 'Đã kiểm tra hồ sơ',
         ])->assertSessionHas('success');
 
-        $this->assertSame(StudentDocumentStatus::RECEIVED, $document->fresh()->status);
+        $document->refresh();
+        $this->assertSame(StudentDocumentStatus::RECEIVED, $document->status);
+        $this->assertSame('Đã kiểm tra hồ sơ', $document->note);
+
+        $this->actingAs($employee)
+            ->get(route('documents.show', $document))
+            ->assertOk()
+            ->assertSee('Lý do')
+            ->assertSee('Đã kiểm tra hồ sơ')
+            ->assertDontSee('Ghi chú chuyển trạng thái')
+            ->assertDontSee('Ghi chú hồ sơ');
         $this->assertDatabaseHas('document_status_history', [
             'student_document_id' => $document->id,
             'status' => StudentDocumentStatus::RECEIVED->value,
@@ -178,22 +179,23 @@ class StudentDocumentManagementTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_assign_any_active_approved_role_and_unassigned_employee_is_denied(): void
+    public function test_assignment_and_acceptance_routes_are_removed(): void
     {
-        $admin = $this->createUser(UserRole::ADMIN, 'admin.documents.assign');
-        $secretary = $this->createUser(UserRole::SECRETARY, 'secretary.documents.assign');
-        $employee = $this->createUser(UserRole::EMPLOYEE, 'employee.documents.denied');
-        $document = $this->createDocument('HS-P4-ASSIGN', $admin);
-        $this->expectAudit('student_document.assigned');
+        $admin = $this->createUser(UserRole::ADMIN, 'admin.documents.assign.removed');
+        $document = $this->createDocument('HS-P4-NO-ASSIGN', $admin);
 
-        $this->actingAs($admin)->patch(route('documents.assignment', $document), [
-            'assigned_secretary_user_id' => $secretary->id,
-        ])->assertSessionHas('success');
-
-        $this->assertSame($secretary->id, $document->fresh()->assigned_secretary_user_id);
-        $this->actingAs($employee)
-            ->post(route('documents.accept', $document))
-            ->assertForbidden();
+        $this->actingAs($admin)
+            ->patch('/documents/'.$document->id.'/assignment', [
+                'assigned_secretary_user_id' => $admin->id,
+            ])
+            ->assertNotFound();
+        $this->actingAs($admin)
+            ->post('/documents/'.$document->id.'/accept', [
+                'transition_note' => 'Không còn thao tác tiếp nhận.',
+            ])
+            ->assertNotFound();
+        $this->assertNull(app('router')->getRoutes()->getByName('documents.assignment'));
+        $this->assertNull(app('router')->getRoutes()->getByName('documents.accept'));
     }
 
     public function test_invalid_transition_does_not_write_history_or_change_document(): void
@@ -321,7 +323,6 @@ class StudentDocumentManagementTest extends TestCase
             'student_code' => $student->student_code,
             'document_type_id' => $type->id,
             'status' => $status,
-            'assigned_secretary_user_id' => $responsible->id,
             'submitted_at' => now(),
             'completed_at' => null,
             'invalid_reason' => null,
