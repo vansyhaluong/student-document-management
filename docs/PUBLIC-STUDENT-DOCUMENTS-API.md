@@ -46,7 +46,8 @@ HTTP `200`
                 "status": "waiting_for_receipt",
                 "status_label": "Chờ tiếp nhận",
                 "submitted_at": "2026-08-17",
-                "completed_at": null
+                "completed_at": null,
+                "notes": null
             }
         ]
     }
@@ -95,8 +96,13 @@ Each document includes only:
 - `status_label` (Vietnamese label)
 - `submitted_at` (`Y-m-d`)
 - `completed_at` (`Y-m-d` or `null`)
+- `notes` (student-facing text from `note`, or `null`)
 
-The API does not return assignment, notes, invalid reason, history, audit,
+`notes` is student-facing text from the document `note`, or the latest
+non-empty status-history note written when staff change status. It is `null`
+when neither has content.
+
+The API does not return assignment, invalid reason, history, audit,
 student PII, or other internal fields.
 
 ## Web lookup

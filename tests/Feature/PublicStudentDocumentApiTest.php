@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\StudentDocumentStatus;
 use App\Enums\UserRole;
+use App\Models\DocumentStatusHistory;
 use App\Models\DocumentType;
 use App\Models\Student;
 use App\Models\StudentDocument;
@@ -74,6 +75,7 @@ class PublicStudentDocumentApiTest extends TestCase
                             'status_label' => StudentDocumentStatus::WAITING_FOR_RECEIPT->label(),
                             'submitted_at' => '2026-08-13',
                             'completed_at' => null,
+                            'notes' => null,
                         ],
                         [
                             'document_code' => $completed->document_code,
@@ -82,13 +84,14 @@ class PublicStudentDocumentApiTest extends TestCase
                             'status_label' => StudentDocumentStatus::COMPLETED->label(),
                             'submitted_at' => '2026-08-10',
                             'completed_at' => '2026-08-12',
+                            'notes' => 'GHI CHÚ NỘI BỘ TUYỆT MẬT',
                         ],
                     ],
                 ],
             ]);
 
         $this->assertSame(
-            ['document_code', 'document_type', 'status', 'status_label', 'submitted_at', 'completed_at'],
+            ['document_code', 'document_type', 'status', 'status_label', 'submitted_at', 'completed_at', 'notes'],
             array_keys($response->json('data.documents.0')),
         );
         $this->assertStringNotContainsString('assigned_secretary_user_id', (string) $response->getContent());
@@ -98,7 +101,6 @@ class PublicStudentDocumentApiTest extends TestCase
         $this->assertStringNotContainsString('activity_log', (string) $response->getContent());
         $this->assertStringNotContainsString($staff->full_name, (string) $response->getContent());
         $this->assertStringNotContainsString($student->last_name, (string) $response->getContent());
-        $this->assertStringNotContainsString('GHI CHÚ NỘI BỘ TUYỆT MẬT', (string) $response->getContent());
         $this->assertStringNotContainsString('HS2608API0003', (string) $response->getContent());
     }
 
@@ -183,17 +185,93 @@ class PublicStudentDocumentApiTest extends TestCase
         $document = $response->json('data.documents.0');
         $this->assertIsArray($document);
         $this->assertSame(
-            ['document_code', 'document_type', 'status', 'status_label', 'submitted_at', 'completed_at'],
+            ['document_code', 'document_type', 'status', 'status_label', 'submitted_at', 'completed_at', 'notes'],
             array_keys($document),
         );
         $this->assertArrayNotHasKey('id', $document);
         $this->assertArrayNotHasKey('note', $document);
+        $this->assertSame('GHI CHU NOI BO KHONG DUOC LO', $document['notes']);
         $this->assertArrayNotHasKey('invalid_reason', $document);
         $this->assertArrayNotHasKey('assigned_secretary_user_id', $document);
         $this->assertArrayNotHasKey('password_hash', $document);
         $this->assertStringNotContainsString('LY DO NOI BO KHONG DUOC LO', (string) $response->getContent());
-        $this->assertStringNotContainsString('GHI CHU NOI BO KHONG DUOC LO', (string) $response->getContent());
         $this->assertStringNotContainsString($staff->full_name, (string) $response->getContent());
+    }
+
+    public function test_response_includes_processor_notes_when_present(): void
+    {
+        $student = $this->createStudent('SV-API-NOTES');
+        $type = $this->createType('API-NOTES', 'Đơn xin xác nhận');
+        $supplement = StudentDocument::query()->create([
+            'document_code' => 'HS2608APINOTE1',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::NEEDS_SUPPLEMENT,
+            'submitted_at' => '2026-08-10 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'Bổ sung bảng điểm học kỳ 1.',
+        ]);
+        $cancelled = StudentDocument::query()->create([
+            'document_code' => 'HS2608APINOTE2',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::CANCELLED,
+            'submitted_at' => '2026-08-11 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'Hồ sơ đã hủy theo yêu cầu.',
+        ]);
+        StudentDocument::query()->create([
+            'document_code' => 'HS2608APINOTE3',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::NEEDS_SUPPLEMENT,
+            'submitted_at' => '2026-08-12 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => null,
+        ]);
+        StudentDocument::query()->create([
+            'document_code' => 'HS2608APINOTE4',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::RECEIVED,
+            'submitted_at' => '2026-08-13 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'KHONG CONG KHAI',
+        ]);
+        $fromStatusChange = StudentDocument::query()->create([
+            'document_code' => 'HS2608APINOTE5',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::RECEIVED,
+            'submitted_at' => '2026-08-14 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => null,
+        ]);
+        $staff = $this->createUser('api.notes.staff');
+        DocumentStatusHistory::query()->create([
+            'student_document_id' => $fromStatusChange->id,
+            'status' => StudentDocumentStatus::RECEIVED->value,
+            'invalid_reason' => null,
+            'note' => 'Da nhan ho so, vui long theo doi.',
+            'changed_by_user_id' => $staff->id,
+            'changed_at' => now(),
+        ]);
+
+        $response = $this->getJson($this->documentsUrl($student->student_code))
+            ->assertOk();
+
+        $byCode = collect($response->json('data.documents'))->keyBy('document_code');
+
+        $this->assertSame('Bổ sung bảng điểm học kỳ 1.', $byCode[$supplement->document_code]['notes']);
+        $this->assertSame('Hồ sơ đã hủy theo yêu cầu.', $byCode[$cancelled->document_code]['notes']);
+        $this->assertNull($byCode['HS2608APINOTE3']['notes']);
+        $this->assertSame('KHONG CONG KHAI', $byCode['HS2608APINOTE4']['notes']);
+        $this->assertSame('Da nhan ho so, vui long theo doi.', $byCode['HS2608APINOTE5']['notes']);
     }
 
     public function test_public_api_route_is_rate_limited(): void
@@ -222,11 +300,15 @@ class PublicStudentDocumentApiTest extends TestCase
 
         $this->post(route('public.documents.lookup'), [
             'student_code' => $student->student_code,
-        ])->assertOk()
+        ])->assertRedirect(route('home').'#lookup');
+
+        $this->get(route('home'))
+            ->assertOk()
             ->assertSee('HS2608APIWEB1')
             ->assertSee('Hoàn tất')
             ->assertSee('10/08/2026')
-            ->assertSee('12/08/2026')
+            ->assertDontSee('Ngày hoàn thành')
+            ->assertDontSee('12/08/2026')
             ->assertDontSee('waiting_for_receipt')
             ->assertDontSee('2026-08-10');
     }

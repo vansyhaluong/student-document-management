@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\StudentDocumentStatus;
 use App\Enums\UserRole;
 use App\Models\ActivityLog;
+use App\Models\DocumentStatusHistory;
 use App\Models\DocumentType;
 use App\Models\Student;
 use App\Models\StudentDocument;
@@ -60,9 +61,10 @@ class PublicStudentHomepageTest extends TestCase
 
         $this->post(route('public.documents.lookup'), [
             'student_code' => $student->student_code,
-        ])->assertOk()
-            ->assertViewHas('studentExists', true)
-            ->assertViewHas('lookupResults', function (array $results): bool {
+        ])->assertRedirect(route('home').'#lookup')
+            ->assertSessionHas('public_lookup.lookupPerformed', true)
+            ->assertSessionHas('public_lookup.studentExists', true)
+            ->assertSessionHas('public_lookup.lookupResults', function (array $results) use ($first): bool {
                 return count($results) === 2
                     && array_keys($results[0]) === [
                         'document_code',
@@ -70,42 +72,144 @@ class PublicStudentHomepageTest extends TestCase
                         'status',
                         'submitted_at',
                         'completed_at',
-                    ];
-            })
+                        'notes',
+                    ]
+                    && $results[0]['notes'] === null
+                    && $results[1]['notes'] === $first->note;
+            });
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertViewHas('studentExists', true)
             ->assertSee($first->document_code)
             ->assertSee($second->document_code)
             ->assertSee($type->name)
             ->assertSee('Hoàn tất')
             ->assertSee('10/08/2026')
-            ->assertSee('12/08/2026')
             ->assertSee($student->full_name)
+            ->assertSee('Ghi chú cho sinh viên')
+            ->assertSee($first->note)
             ->assertDontSee($staff->full_name)
-            ->assertDontSee($first->note);
+            ->assertDontSee('Ngày hoàn thành')
+            ->assertDontSee('12/08/2026');
+    }
+
+    public function test_public_lookup_shows_processor_notes_when_present(): void
+    {
+        $student = $this->createStudent('SV-PUBLIC-NOTES');
+        $type = $this->createType('PUBLIC-NOTES', 'Đơn xin bổ sung');
+        $supplement = StudentDocument::query()->create([
+            'document_code' => 'HS2608NOTE001',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::NEEDS_SUPPLEMENT,
+            'submitted_at' => '2026-08-10 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'Vui lòng nộp thêm bản sao CCCD.',
+        ]);
+        $cancelled = StudentDocument::query()->create([
+            'document_code' => 'HS2608NOTE002',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::CANCELLED,
+            'submitted_at' => '2026-08-11 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'Sinh viên đã rút hồ sơ.',
+        ]);
+        $emptySupplement = StudentDocument::query()->create([
+            'document_code' => 'HS2608NOTE003',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::NEEDS_SUPPLEMENT,
+            'submitted_at' => '2026-08-12 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => '   ',
+        ]);
+        $processing = StudentDocument::query()->create([
+            'document_code' => 'HS2608NOTE004',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::PROCESSING,
+            'submitted_at' => '2026-08-13 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => 'Hồ sơ đang được Khoa xử lý.',
+        ]);
+        $fromStatusChange = StudentDocument::query()->create([
+            'document_code' => 'HS2608NOTE005',
+            'student_code' => $student->student_code,
+            'document_type_id' => $type->id,
+            'status' => StudentDocumentStatus::RECEIVED,
+            'submitted_at' => '2026-08-14 08:00:00',
+            'completed_at' => null,
+            'invalid_reason' => null,
+            'note' => null,
+        ]);
+        $staff = $this->createUser('public.notes.staff');
+        DocumentStatusHistory::query()->create([
+            'student_document_id' => $fromStatusChange->id,
+            'status' => StudentDocumentStatus::RECEIVED->value,
+            'invalid_reason' => null,
+            'note' => 'Đã nhận hồ sơ, vui lòng theo dõi tiến độ.',
+            'changed_by_user_id' => $staff->id,
+            'changed_at' => now(),
+        ]);
+
+        $this->post(route('public.documents.lookup'), [
+            'student_code' => $student->student_code,
+        ])->assertRedirect(route('home').'#lookup')
+            ->assertSessionHas('public_lookup.lookupResults', function (array $results) use ($supplement, $cancelled, $emptySupplement, $processing, $fromStatusChange): bool {
+                $byCode = collect($results)->keyBy('document_code');
+
+                return $byCode[$supplement->document_code]['notes'] === 'Vui lòng nộp thêm bản sao CCCD.'
+                    && $byCode[$cancelled->document_code]['notes'] === 'Sinh viên đã rút hồ sơ.'
+                    && $byCode[$emptySupplement->document_code]['notes'] === null
+                    && $byCode[$processing->document_code]['notes'] === 'Hồ sơ đang được Khoa xử lý.'
+                    && $byCode[$fromStatusChange->document_code]['notes'] === 'Đã nhận hồ sơ, vui lòng theo dõi tiến độ.';
+            });
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Ghi chú cho sinh viên')
+            ->assertSee('Vui lòng nộp thêm bản sao CCCD.')
+            ->assertSee('Sinh viên đã rút hồ sơ.')
+            ->assertSee('Hồ sơ đang được Khoa xử lý.')
+            ->assertSee('Đã nhận hồ sơ, vui lòng theo dõi tiến độ.')
+            ->assertDontSee('Ngày hoàn thành');
     }
 
     public function test_public_lookup_handles_unknown_student_no_documents_empty_and_invalid_codes(): void
     {
         $this->post(route('public.documents.lookup'), [
             'student_code' => 'SV-KHONG-TON-TAI',
-        ])->assertOk()
+        ])->assertRedirect(route('home').'#lookup');
+        $this->get(route('home'))
+            ->assertOk()
             ->assertSee('Không tìm thấy sinh viên với mã số đã nhập');
 
         $student = $this->createStudent('SV-PUBLIC-EMPTY');
         $this->post(route('public.documents.lookup'), [
             'student_code' => $student->student_code,
-        ])->assertOk()
+        ])->assertRedirect(route('home').'#lookup');
+        $this->get(route('home'))
+            ->assertOk()
             ->assertSee($student->full_name)
             ->assertSee('chưa có hồ sơ nào trong hệ thống');
 
         $this->from(route('home'))->post(route('public.documents.lookup'), [
             'student_code' => '   ',
-        ])->assertRedirect(route('home'))
+        ])->assertRedirect(route('home').'#lookup')
             ->assertSessionHasErrors(['student_code'], null, 'lookup');
 
         $this->from(route('home'))->post(route('public.documents.lookup'), [
             'student_code' => '../invalid',
-        ])->assertRedirect(route('home'))
+        ])->assertRedirect(route('home').'#lookup')
             ->assertSessionHasErrors(['student_code'], null, 'lookup');
+
+        $this->get(route('public.documents.lookup'))->assertStatus(405);
     }
 
     public function test_public_submission_rejects_unknown_student_and_inactive_type(): void
@@ -115,7 +219,7 @@ class PublicStudentHomepageTest extends TestCase
         $this->from(route('home'))->post(route('public.documents.store'), [
             'student_code' => 'SV-KHONG-TON-TAI',
             'document_type_id' => $inactive->id,
-        ])->assertRedirect(route('home'))
+        ])->assertRedirect(route('home').'#submission')
             ->assertSessionHasErrors(
                 ['student_code', 'document_type_id'],
                 null,
@@ -146,6 +250,15 @@ class PublicStudentHomepageTest extends TestCase
         $documentCode = $response->getSession()->get('public_document_code');
         $this->assertIsString($documentCode);
         $this->assertMatchesRegularExpression('/^HS\d{10}$/', $documentCode);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Nộp hồ sơ thành công')
+            ->assertSee('Bạn có thể dùng mã số sinh viên để theo dõi trạng thái xử lý.')
+            ->assertDontSee('Sao chép mã')
+            ->assertDontSee('Đến phần tra cứu')
+            ->assertDontSee($documentCode)
+            ->assertDontSee('value="'.$student->student_code.'"', false);
 
         $document = StudentDocument::query()->where('document_code', $documentCode)->firstOrFail();
         $this->assertSame($student->student_code, $document->student_code);
@@ -202,7 +315,8 @@ class PublicStudentHomepageTest extends TestCase
 
         $this->assertSame(0, $document->statusHistory()->count());
 
-        $this->actingAs($admin)->post(route('documents.accept', $document), [
+        $this->actingAs($admin)->patch(route('documents.status', $document), [
+            'status' => StudentDocumentStatus::RECEIVED->value,
             'transition_note' => 'Tiếp nhận hồ sơ nộp công khai',
         ])->assertSessionHas('success');
 

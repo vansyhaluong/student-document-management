@@ -16,6 +16,7 @@ tra cứu và nộp hồ sơ công khai cho sinh viên.
 - [Quy trình xử lý hồ sơ](#quy-trình-xử-lý-hồ-sơ)
 - [API dành cho Mobile](#api-dành-cho-mobile)
 - [Câu hỏi thường gặp](#câu-hỏi-thường-gặp)
+- [Chạy bằng Docker](#chạy-bằng-docker)
 - [Lưu ý](#lưu-ý)
 
 ## Giới thiệu
@@ -36,8 +37,8 @@ Phiên bản hiện tại không gửi email, không có quên mật khẩu qua 
 | Vai trò | Quyền chính |
 |---|---|
 | Admin (`ADMIN`) | Quản lý toàn hệ thống: người dùng, loại hồ sơ, mọi hồ sơ, báo cáo, nhật ký hoạt động |
-| Thư ký (`SECRETARY`) | Xem dashboard toàn hệ thống, tạo/cập nhật hồ sơ, phân công, đổi trạng thái, xem báo cáo |
-| Nhân viên (`EMPLOYEE`) | Chỉ xem hồ sơ được phân công; tiếp nhận hồ sơ chờ tiếp nhận; cập nhật ghi chú |
+| Thư ký (`SECRETARY`) | Xem dashboard toàn hệ thống, tạo/cập nhật hồ sơ, đổi trạng thái, xem báo cáo |
+| Nhân viên (`EMPLOYEE`) | Xem mọi hồ sơ; đổi trạng thái theo quy trình; cập nhật ghi chú |
 | Sinh viên | Tra cứu và nộp hồ sơ trên trang chủ, không đăng nhập |
 
 Trong cơ sở dữ liệu, vai trò Nhân viên được lưu bằng giá trị `staff`.
@@ -49,8 +50,6 @@ Trong cơ sở dữ liệu, vai trò Nhân viên được lưu bằng giá trị
 - Quản lý người dùng (Admin)
 - Quản lý loại hồ sơ (Admin)
 - Quản lý hồ sơ sinh viên: tìm kiếm, lọc, tạo, xem, cập nhật
-- Phân công người phụ trách
-- Tiếp nhận hồ sơ
 - Chuyển trạng thái và xem lịch sử trạng thái
 - Báo cáo (Admin, Thư ký)
 - Nhật ký hoạt động (Admin, chỉ xem)
@@ -75,9 +74,9 @@ Thông tin công khai gồm:
 - Loại hồ sơ
 - Trạng thái
 - Ngày nộp
-- Ngày hoàn thành (nếu hồ sơ đã hoàn tất)
+- Ghi chú cho sinh viên khi người xử lý đã nhập chú thích trên hồ sơ hoặc khi chuyển trạng thái
 
-Trang công khai **không** hiển thị người phụ trách, ghi chú nội bộ, lý do không hợp lệ, lịch sử trạng thái hay nhật ký hệ thống.
+Trang công khai **không** hiển thị người phụ trách, lý do không hợp lệ, lịch sử trạng thái hay nhật ký hệ thống. Khối ghi chú chỉ hiện khi hồ sơ có chú thích.
 
 Nếu MSSV không tồn tại, hệ thống báo không tìm thấy sinh viên. Nếu MSSV đúng nhưng chưa có hồ sơ, hệ thống báo sinh viên chưa có hồ sơ.
 
@@ -152,13 +151,11 @@ Có thể xem danh sách, tạo loại mới, sửa tên/mô tả và bật/tắ
 Vào menu **Hồ sơ**.
 
 - Tìm theo mã hồ sơ, mã sinh viên hoặc tên sinh viên.
-- Lọc theo loại hồ sơ, trạng thái, người phụ trách, khoảng ngày nộp.
-- Tạo hồ sơ: mã hồ sơ (duy nhất), MSSV đã có, loại hồ sơ đang hoạt động, người phụ trách (nếu có), ghi chú.
+- Lọc theo loại hồ sơ, trạng thái, khoảng ngày nộp.
+- Tạo hồ sơ: mã hồ sơ (duy nhất), MSSV đã có, loại hồ sơ đang hoạt động, ghi chú.
 - Hồ sơ mới bắt đầu ở trạng thái **Chờ tiếp nhận**. Mã hồ sơ không đổi sau khi tạo.
-- Xem chi tiết: thông tin sinh viên, loại, trạng thái, người phụ trách, ngày nộp/hoàn tất, lý do không hợp lệ, ghi chú, lịch sử trạng thái.
+- Xem chi tiết: thông tin sinh viên, loại, trạng thái, ngày nộp/hoàn tất, lý do không hợp lệ, ghi chú, lịch sử trạng thái.
 - Cập nhật thông tin hồ sơ (MSSV, loại, ghi chú).
-- Phân công hoặc đổi người phụ trách.
-- Tiếp nhận hồ sơ đang chờ tiếp nhận.
 - Chuyển trạng thái theo quy trình hợp lệ.
 
 <!-- Screenshot: docs/images/user-guide/documents.png -->
@@ -169,7 +166,7 @@ Vào menu **Hồ sơ**.
 
 Vào menu **Báo cáo**. Admin và Thư ký xem được.
 
-Lọc theo loại hồ sơ, trạng thái, khoảng ngày nộp và khoảng ngày hoàn tất. Kết quả gồm tổng số hồ sơ phù hợp và thống kê theo trạng thái, loại, người phụ trách. Không xuất Excel/PDF.
+Lọc theo loại hồ sơ, trạng thái, khoảng ngày nộp và khoảng ngày hoàn tất. Kết quả gồm tổng số hồ sơ phù hợp và thống kê theo trạng thái, loại. Không xuất Excel/PDF.
 
 <!-- Screenshot: docs/images/user-guide/reports.png -->
 
@@ -193,24 +190,20 @@ Thư ký có thể:
 - Tìm, lọc, xem mọi hồ sơ
 - Tạo hồ sơ mới
 - Cập nhật MSSV, loại hồ sơ, ghi chú
-- Phân công người phụ trách
-- Tiếp nhận hồ sơ chờ tiếp nhận
 - Chuyển trạng thái theo quy trình
 - Xem lịch sử trạng thái
 
-<!-- Screenshot: docs/images/user-guide/document-assign.png -->
-
 ## Hướng dẫn dành cho Nhân viên
 
-Nhân viên **chỉ thấy các hồ sơ được phân công cho mình**, kể cả trên dashboard.
+Nhân viên xem **mọi hồ sơ**, kể cả trên dashboard. Không có phân công hay nhận hồ sơ theo người dùng.
 
 1. Đăng nhập bằng tài khoản nội bộ.
-2. Mở **Hồ sơ** để xem danh sách trong phạm vi được giao.
+2. Mở **Hồ sơ** để xem danh sách.
 3. Mở chi tiết hồ sơ để xem thông tin và lịch sử trạng thái.
-4. Nếu hồ sơ đang **Chờ tiếp nhận**, nhấn **Xác nhận tiếp nhận** để chuyển sang **Đã tiếp nhận**.
-5. Có thể cập nhật **ghi chú** của hồ sơ được giao.
+4. Chuyển trạng thái theo quy trình hợp lệ, ví dụ từ **Chờ tiếp nhận** sang **Đã tiếp nhận**.
+5. Có thể cập nhật **ghi chú** của hồ sơ.
 
-Nhân viên **không** tạo hồ sơ, không phân công người khác và không tự chuyển các trạng thái khác ngoài thao tác tiếp nhận. Việc chuyển sang Đang xử lý, Hoàn tất, Cần bổ sung, Không hợp lệ hoặc Đã hủy do Admin hoặc Thư ký thực hiện.
+Nhân viên **không** tạo hồ sơ. Việc chuyển trạng thái tuân theo map quy trình, không phụ thuộc người được giao.
 
 ## Quy trình xử lý hồ sơ
 
@@ -219,9 +212,7 @@ Sinh viên nộp / Admin hoặc Thư ký tạo hồ sơ
                 ↓
         Chờ tiếp nhận
                 ↓
-     Phân công (nếu chưa có)
-                ↓
-     Tiếp nhận → Đã tiếp nhận
+        Đã tiếp nhận
                 ↓
            Đang xử lý
                 ↓
@@ -311,7 +302,7 @@ Loại đó có thể đã bị tắt. Chỉ loại đang hoạt động mới x
 
 ### Nhân viên không thấy hồ sơ?
 
-Nhân viên chỉ thấy hồ sơ được phân công cho đúng tài khoản đó. Liên hệ Admin hoặc Thư ký để phân công.
+Nhân viên xem được mọi hồ sơ. Nếu danh sách trống, kiểm tra bộ lọc hoặc xác nhận đã có hồ sơ trong hệ thống.
 
 ### Vì sao Nhân viên không tạo được hồ sơ?
 
@@ -319,7 +310,7 @@ Vai trò Nhân viên không có quyền tạo. Việc tạo do Admin, Thư ký h
 
 ### Tại sao không đổi được trạng thái?
 
-Không phải mọi bước đều chuyển tùy ý. Hệ thống chỉ cho phép các chuyển trạng thái liệt kê ở mục quy trình. Nhân viên chỉ thực hiện tiếp nhận hồ sơ đang chờ tiếp nhận.
+Không phải mọi bước đều chuyển tùy ý. Hệ thống chỉ cho phép các chuyển trạng thái liệt kê ở mục quy trình.
 
 ### Admin có tự khóa tài khoản của mình không?
 
@@ -331,7 +322,7 @@ Tối thiểu 8 ký tự và phải nhập lại để xác nhận khi tạo tà
 
 ### Hồ sơ nộp xong ở trạng thái nào?
 
-Luôn bắt đầu ở **Chờ tiếp nhận**, chưa gắn lịch sử trạng thái cho đến khi cán bộ tiếp nhận hoặc đổi trạng thái.
+Luôn bắt đầu ở **Chờ tiếp nhận**, chưa gắn lịch sử trạng thái cho đến khi cán bộ đổi trạng thái.
 
 ### Tôi có tải được file đính kèm không?
 
@@ -371,3 +362,31 @@ php artisan serve
 ```
 
 Cấu hình `DB_*` trong `.env` cho đúng cơ sở dữ liệu local trước khi dùng các chức năng hồ sơ.
+
+## Chạy bằng Docker
+
+Cần Docker Desktop (Compose). Không dùng Laravel Sail.
+
+```powershell
+docker compose config
+docker compose build
+docker compose up -d
+```
+
+Ứng dụng: http://localhost:8000
+
+Tài khoản demo (mật khẩu `password`): `admin`, `secretary`, `staff`.
+
+MSSV demo: `DEMO0001`.
+
+```powershell
+docker compose exec app php artisan db:show
+docker compose down
+docker compose up -d --build
+```
+
+MariaDB được khởi tạo từ `database/schema/student_document_management_schema.sql`. Volume `mariadb_data` giữ dữ liệu giữa các lần chạy. Xóa volume khi muốn import schema lại:
+
+```powershell
+docker compose down -v
+```

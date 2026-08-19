@@ -17,8 +17,8 @@
             </a>
 
             <nav class="public-nav" aria-label="Điều hướng trang chủ">
-                <a href="{{ route('home') }}" class="public-nav-link public-nav-link-active" aria-current="page">Trang chủ</a>
-                <a href="#huong-dan" class="public-nav-link">Hướng dẫn</a>
+                <a href="{{ route('home') }}" class="public-nav-link" data-public-nav="home">Trang chủ</a>
+                <a href="#huong-dan" class="public-nav-link" data-public-nav="guide">Hướng dẫn</a>
             </nav>
 
             <a href="{{ route('login') }}" class="public-login-link">
@@ -98,7 +98,7 @@
                         </div>
 
                         @php($lookupErrors = $errors->getBag('lookup'))
-                        <form action="{{ route('public.documents.lookup') }}#lookup" method="POST" class="mt-6" novalidate>
+                        <form action="{{ route('public.documents.lookup') }}#lookup" method="POST" class="mt-6 shrink-0" novalidate>
                             @csrf
                             <label for="lookup-student-code" class="mb-2 block text-sm font-semibold text-portal-ink">Mã số sinh viên (MSSV)</label>
                             <div class="public-lookup-row">
@@ -140,7 +140,7 @@
                             <p>
                                 Sinh viên
                                 @if(! empty($lookupStudentName))
-                                    <span class="font-semibold">{{ $lookupStudentName }}</span>
+                                <span class="font-semibold">{{ $lookupStudentName }}</span>
                                 @endif
                                 chưa có hồ sơ nào trong hệ thống.
                             </p>
@@ -152,8 +152,8 @@
                                     <p class="text-sm font-semibold text-portal-ink">Kết quả tra cứu</p>
                                     <p class="mt-0.5 text-xs text-portal-muted">
                                         @if(! empty($lookupStudentName))
-                                            <span class="font-semibold text-portal-ink">{{ $lookupStudentName }}</span>
-                                            ·
+                                        <span class="font-semibold text-portal-ink">{{ $lookupStudentName }}</span>
+                                        ·
                                         @endif
                                         MSSV: <span class="font-semibold text-portal-ink">{{ $lookupStudentCode }}</span>
                                     </p>
@@ -195,10 +195,12 @@
                                         <dt>Ngày nộp</dt>
                                         <dd class="font-semibold">{{ $result['submitted_at'] }}</dd>
                                     </div>
-                                    <div>
-                                        <dt>Ngày hoàn thành</dt>
-                                        <dd class="font-semibold">{{ $result['completed_at'] ?? '—' }}</dd>
+                                    @if (filled($result['notes'] ?? null))
+                                    <div class="sm:col-span-2">
+                                        <dt>Ghi chú cho sinh viên</dt>
+                                        <dd class="whitespace-pre-line">{{ $result['notes'] }}</dd>
                                     </div>
+                                    @endif
                                 </dl>
                                 @endforeach
                             </div>
@@ -223,31 +225,8 @@
                             </div>
                         </div>
 
-                        @if(session('public_document_code'))
-                        <div class="public-success-card mt-6" role="status">
-                            <div class="flex items-start gap-3">
-                                <span class="public-success-icon" aria-hidden="true">
-                                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
-                                </span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-base font-semibold text-emerald-900">Nộp hồ sơ thành công</p>
-                                    <p class="mt-4 text-xs font-semibold tracking-wide text-emerald-800 uppercase">Mã hồ sơ của bạn</p>
-                                    <p data-public-document-code class="public-document-code">{{ session('public_document_code') }}</p>
-                                    <p class="mt-4 text-sm leading-6 text-emerald-900">Vui lòng lưu mã hồ sơ để tiện theo dõi khi cần.</p>
-                                    <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-                                        <button type="button" data-copy-document-code class="btn-secondary bg-white">Sao chép mã</button>
-                                        <a href="#lookup" class="btn-primary">Đến phần tra cứu</a>
-                                    </div>
-                                    <p data-copy-status class="mt-2 hidden text-xs font-medium text-emerald-800" aria-live="polite"></p>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-
                         @php($submissionErrors = $errors->getBag('submission'))
-                        <form action="{{ route('public.documents.store') }}" method="POST" class="mt-6 flex flex-1 flex-col" novalidate>
+                        <form action="{{ route('public.documents.store') }}" method="POST" class="mt-6 shrink-0" novalidate>
                             @csrf
 
                             <div>
@@ -275,20 +254,33 @@
                             <p class="mt-4 text-sm leading-6 text-portal-muted">Hiện chưa có loại hồ sơ khả dụng.</p>
                             @endif
 
-                            <button type="submit" class="btn-primary mt-6 w-full sm:w-auto sm:self-start" @disabled($documentTypes===[])>
+                            <button type="submit" class="btn-primary mt-3 mb-5 w-full sm:w-auto sm:self-start" @disabled($documentTypes===[])>
                                 <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
                                 Nộp hồ sơ
                             </button>
 
-                            <div class="public-info-box mt-5">
-                                <svg aria-hidden="true" class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                </svg>
-                                <p>Sau khi nộp thành công, bạn sẽ nhận được mã hồ sơ để theo dõi trạng thái xử lý.</p>
-                            </div>
                         </form>
+
+                        @if(session('public_document_code'))
+                        <div class="public-submit-success mt-auto" role="status">
+                            <svg aria-hidden="true" class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            <div>
+                                <p class="font-semibold text-portal-ink">Nộp hồ sơ thành công</p>
+                                <p class="mt-0.5 text-sm leading-5 text-portal-muted">Bạn có thể dùng mã số sinh viên để theo dõi trạng thái xử lý.</p>
+                            </div>
+                        </div>
+                        @else
+                        <div class="public-info-box mt-5">
+                            <svg aria-hidden="true" class="size-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                            </svg>
+                            <p>Sau khi nộp, dùng MSSV ở mục Tra cứu hồ sơ để theo dõi trạng thái xử lý.</p>
+                        </div>
+                        @endif
                     </div>
                 </article>
             </div>
@@ -409,16 +401,24 @@
 
                     <div class="public-footer-social">
                         <a href="https://www.facebook.com/tdc.fit/" target="_blank" rel="noopener noreferrer" aria-label="Facebook Khoa Công nghệ Thông tin">
-                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 8.25H16.5V5.5h-2c-2.3 0-3.75 1.4-3.75 3.85v1.9H8.5v2.7h2.25V20h2.85v-6.05H16.1l.45-2.7h-2.95V9.55c0-.8.35-1.3 1.4-1.3Z" /></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14.5 8.25H16.5V5.5h-2c-2.3 0-3.75 1.4-3.75 3.85v1.9H8.5v2.7h2.25V20h2.85v-6.05H16.1l.45-2.7h-2.95V9.55c0-.8.35-1.3 1.4-1.3Z" />
+                            </svg>
                         </a>
                         <a href="https://www.tiktok.com/@fittdc" target="_blank" rel="noopener noreferrer" aria-label="TikTok Khoa Công nghệ Thông tin">
-                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M14.2 4c.3 1.7 1.4 3.1 3 3.8V10c-1.3 0-2.5-.4-3.5-1.1v5.3c0 2.9-2.4 5.3-5.4 5.3A5.35 5.35 0 0 1 4.8 16c.7 1 1.9 1.7 3.2 1.7 2.1 0 3.8-1.7 3.8-3.8V4h2.4Z" /></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14.2 4c.3 1.7 1.4 3.1 3 3.8V10c-1.3 0-2.5-.4-3.5-1.1v5.3c0 2.9-2.4 5.3-5.4 5.3A5.35 5.35 0 0 1 4.8 16c.7 1 1.9 1.7 3.2 1.7 2.1 0 3.8-1.7 3.8-3.8V4h2.4Z" />
+                            </svg>
                         </a>
                         <a href="https://www.youtube.com/fit-tdc" target="_blank" rel="noopener noreferrer" aria-label="YouTube Khoa Công nghệ Thông tin">
-                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.9 4.8 12 4.8 12 4.8s-5.9 0-7.6.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 7.6.4 7.6.4s5.9 0 7.6-.4a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8ZM10.2 15.2V8.8L15.6 12l-5.4 3.2Z" /></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.9 4.8 12 4.8 12 4.8s-5.9 0-7.6.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 7.6.4 7.6.4s5.9 0 7.6-.4a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8ZM10.2 15.2V8.8L15.6 12l-5.4 3.2Z" />
+                            </svg>
                         </a>
                         <a href="https://vn.linkedin.com/school/fit-tdc/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn Khoa Công nghệ Thông tin">
-                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 9.3H4V20h2.5V9.3ZM5.2 4A1.5 1.5 0 1 0 5.2 7a1.5 1.5 0 0 0 0-3ZM20 20h-2.5v-5.2c0-1.7-.7-2.3-1.7-2.3s-1.9.8-1.9 2.4V20H11.4V9.3h2.4v1.5c.5-.9 1.6-1.8 3.3-1.8 2.3 0 2.9 1.5 2.9 4.2V20Z" /></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6.5 9.3H4V20h2.5V9.3ZM5.2 4A1.5 1.5 0 1 0 5.2 7a1.5 1.5 0 0 0 0-3ZM20 20h-2.5v-5.2c0-1.7-.7-2.3-1.7-2.3s-1.9.8-1.9 2.4V20H11.4V9.3h2.4v1.5c.5-.9 1.6-1.8 3.3-1.8 2.3 0 2.9 1.5 2.9 4.2V20Z" />
+                            </svg>
                         </a>
                     </div>
                 </div>
